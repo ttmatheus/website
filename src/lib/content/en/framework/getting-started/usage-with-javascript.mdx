@@ -1,0 +1,81 @@
+---
+title: Usage with JavaScript
+description: How to use AzuraJS in pure JavaScript projects
+category: Getting Started
+icon: lucide:code
+order: 4
+---
+
+# Usage with JavaScript ☕
+
+While AzuraJS is built with TypeScript in mind and leverages its typing and decorator features, it can be perfectly used in pure JavaScript projects. The main difference is that you won't use decorators, but rather the functional API of `AzuraClient`.
+
+## Project Configuration
+
+For a JavaScript project, you don't need to enable `experimentalDecorators` in `tsconfig.json`. A basic `package.json` and an `azura.config.js` configuration file are sufficient.
+
+### `azura.config.js`
+
+```javascript
+// azura.config.js
+
+const config = {
+  environment: "development",
+  server: {
+    port: 3000,
+  },
+  logging: {
+    enabled: true,
+  },
+};
+
+export default config;
+```
+
+## Creating Functional Routes
+
+Instead of classes with decorators, you define routes directly on the `AzuraClient` instance.
+
+```javascript
+// src/index.js
+
+import { AzuraClient } from "azurajs";
+
+const app = new AzuraClient();
+
+app.get("/", (req, res) => {
+  res.send("Hello from AzuraJS in JavaScript!");
+});
+
+app.post("/data", async (req, res) => {
+  const body = await req.json(); // To read the JSON body
+  res.json({ received: body, status: "success" });
+});
+
+app.listen().then(() => {
+  console.log("🚀 AzuraJS JS server running at http://localhost:3000");
+});
+```
+
+## Accessing Request Data
+
+The `req` (RequestServer) and `res` (ResponseServer) objects still provide a rich API for interacting with the request and response.
+
+```javascript
+app.get("/users/:id", (req, res) => {
+  const userId = req.params.id; // Route parameters
+  const queryParam = req.query.search; // Query parameters
+  const userAgent = req.headers["user-agent"]; // Headers
+
+  res.json({
+    id: userId,
+    search: queryParam,
+    userAgent: userAgent,
+  });
+});
+```
+
+## Next Steps 📖
+
+- [⚙️ **Configuration**](/docs/en/getting-started/configuration): Understand all AzuraJS configuration options.
+- [🛣️ **Routing**](/docs/en/concepts/routing): Explore routing capabilities, even without decorators.

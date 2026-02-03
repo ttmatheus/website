@@ -1,0 +1,119 @@
+---
+title: Decorators
+description: Master AzuraJS decorators for clean and expressive code
+category: Main Concepts
+icon: lucide:tag
+order: 3
+---
+
+# Decorators 🏷️
+
+Decorators are a powerful TypeScript feature that allows you to add metadata and logic to classes, methods, properties, and parameters. In AzuraJS, they are the foundation for defining routes, injecting dependencies, and configuring your API's behavior in a declarative and elegant way.
+
+## Enabling Decorators
+
+To use decorators, you need to enable them in your `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  }
+}
+```
+
+## Types of Decorators in AzuraJS
+
+### 1. Class Decorators
+
+Used to define controllers and apply global configurations.
+
+*   `@Controller(prefix?: string)`: Defines a class as a controller and optionally a prefix for all its routes.
+
+```typescript
+import { Controller } from "azurajs/decorators";
+
+@Controller("/api/v1")
+export class MyController {
+  // ... routes
+}
+```
+
+### 2. Method Decorators
+
+Used to map class methods to specific HTTP routes.
+
+*   `@Get(path?: string)`
+*   `@Post(path?: string)`
+*   `@Put(path?: string)`
+*   `@Delete(path?: string)`
+*   `@Patch(path?: string)`
+*   `@Head(path?: string)`
+*   `@Options(path?: string)`
+
+```typescript
+import { Controller, Get, Post } from "azurajs/decorators";
+
+@Controller("/users")
+export class UserController {
+  @Get("/:id") // GET /users/:id
+  getUser() { /* ... */ }
+
+  @Post() // POST /users
+  createUser() { /* ... */ }
+}
+```
+
+### 3. Parameter Decorators
+
+Used to inject request data directly into controller method arguments.
+
+*   `@Req()`: Request object.
+*   `@Res()`: Response object.
+*   `@Next()`: `next()` function for middlewares.
+*   `@Param(name?: string)`: Route parameter.
+*   `@Query(name?: string)`: Query string parameter.
+*   `@Body(name?: string)`: Request body.
+*   `@Headers(name?: string)`: Request header.
+*   `@Cookies(name?: string)`: Request cookie.
+*   `@Ip()`: Client IP address.
+
+```typescript
+import { Controller, Get, Param, Query, Body } from "azurajs/decorators";
+
+@Controller("/products")
+export class ProductController {
+  @Get("/:id")
+  getProduct(
+    @Param("id") productId: string,
+    @Query("version") version?: string
+  ) {
+    return { productId, version };
+  }
+
+  @Post()
+  createProduct(@Body() productData: any) {
+    return { created: productData };
+  }
+}
+```
+
+## `applyDecorators()`
+
+For decorators to be processed and routes registered, you must call `applyDecorators()` in your main file, passing the `AzuraClient` instance and an array of controller classes.
+
+```typescript
+import { AzuraClient } from "azurajs";
+import { applyDecorators } from "azurajs/decorators";
+import { UserController } from "./controllers/UserController";
+
+const app = new AzuraClient();
+applyDecorators(app, [UserController]);
+// ...
+```
+
+## Next Steps 📖
+
+- [🔌 **Middleware**](/docs/en/concepts/middleware): Understand how middlewares work with routing.
+- [🎯 **Controllers**](/docs/en/concepts/controllers): See how decorators are applied in practice.

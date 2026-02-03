@@ -1,0 +1,72 @@
+---
+title: Controllers
+description: Learn about the controller pattern in AzuraJS
+category: Main Concepts
+icon: lucide:target
+order: 1
+---
+
+# Controllers 🎯
+
+Controllers are the heart of AzuraJS applications. They provide a clean, object-oriented way to organize your API endpoints into logical and maintainable classes using TypeScript decorators.
+
+<Callout type="info" title="Why Use Controllers?">
+Controllers follow the MVC (Model-View-Controller) pattern, promoting separation of concerns. They keep your routing logic organized and reduce code duplication.
+</Callout>
+
+## What is a Controller? 📚
+
+A controller is a TypeScript class decorated with `@Controller` that groups related route handlers (endpoints). Each method in the controller represents a specific route and is decorated with HTTP method decorators like `@Get`, `@Post`, `@Put`, or `@Delete`.
+
+```typescript
+import { Controller, Get, Post } from "azurajs/decorators";
+
+@Controller("/api/products")
+export class ProductController {
+  @Get()
+  list() {
+    return { products: [] };
+  }
+
+  @Post()
+  create() {
+    return { message: "Product created" };
+  }
+}
+```
+
+## Controller Decorator 🏷️
+
+The `@Controller(prefix?)` decorator accepts an optional prefix that will be applied to all routes within the class.
+
+- **Basic Usage**: `@Controller("/users")` -> All routes will start with `/users`.
+- **No Prefix**: `@Controller()` -> Routes will use only their own paths.
+- **Nested Paths**: `@Controller("/api/v1/admin")` -> Long prefix for all routes.
+
+## Parameter Injection 💉
+
+AzuraJS makes it easy to access request data through parameter decorators:
+
+| Decorator | Description |
+| :--- | :--- |
+| `@Req()` | Injects the full request object. |
+| `@Res()` | Injects the full response object. |
+| `@Body()` | Injects the request body (parsed JSON). |
+| `@Param(name)` | Injects a URL parameter (e.g., `:id`). |
+| `@Query(name)` | Injects a query string parameter. |
+| `@Headers(name)` | Injects a specific header or all headers. |
+| `@Cookies(name)` | Injects a specific cookie or all cookies. |
+| `@Ip()` | Injects the client's IP address. |
+
+## Best Practices ✨
+
+1.  **Single Responsibility**: Each controller should handle a single resource or domain (e.g., `UserController`, `OrderController`).
+2.  **Use Services**: Keep heavy business logic in service classes, leaving the controller only to handle HTTP.
+3.  **Consistent Responses**: Try to maintain a standard JSON response pattern across all methods.
+4.  **Error Handling**: Use the `HttpError` class to throw errors with specific status codes.
+
+## Next Steps 📖
+
+- [🛣️ **Routing**](/docs/en/concepts/routing): Learn about route patterns and parameters.
+- [🏷️ **Decorators**](/docs/en/concepts/decorators): Master all available decorators.
+- [🛡️ **Validation**](/docs/en/features/validation): Validate request data automatically.

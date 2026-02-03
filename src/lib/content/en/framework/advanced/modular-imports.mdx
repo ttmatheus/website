@@ -1,0 +1,73 @@
+---
+title: Modular Imports
+description: Optimize your bundle size with AzuraJS modular imports
+category: Advanced
+icon: lucide:box
+order: 3
+---
+
+# Modular Imports 📦
+
+AzuraJS is designed to be lightweight and efficient. One way to ensure this is through its modular architecture, which allows you to import only the parts of the framework you actually need. This is especially beneficial for your application's final bundle size, resulting in faster loading times and lower resource consumption.
+
+## How It Works
+
+Instead of importing the entire `azurajs` package, you can import specific modules directly from their subpaths. For example, decorators are imported from `azurajs/decorators`, validators from `azurajs/validators`, and plugins from `azurajs/plugins`.
+
+### Full Import (Not Recommended)
+
+```typescript
+// Not recommended for production, as it imports everything
+import * as azurajs from "azurajs";
+import * as decorators from "azurajs/decorators";
+
+const app = new azurajs.AzuraClient();
+decorators.applyDecorators(app, [/* ... */]);
+```
+
+### Modular Import (Recommended)
+
+```typescript
+// Recommended: Import only what you need
+import { AzuraClient } from "azurajs";
+import { applyDecorators, Controller, Get } from "azurajs/decorators";
+import { v } from "azurajs/validators";
+import { corsPlugin } from "azurajs/plugins";
+
+const app = new AzuraClient();
+app.use(corsPlugin());
+
+@Controller("/api")
+class MyController {
+  @Get("/hello")
+  hello() {
+    return "Hello modular!";
+  }
+}
+
+applyDecorators(app, [MyController]);
+// ...
+```
+
+## Benefits
+
+*   **Smaller Bundle Size**: By importing only what's necessary, the bundler (like Webpack, Rollup, esbuild, Bun) can perform *tree-shaking* more effectively, removing unused code.
+*   **Better Performance**: Smaller bundles mean less time for JavaScript download and parsing on the client (if you are building a frontend with AzuraJS, which is less common but applicable).
+*   **Code Clarity**: It becomes clearer which parts of the framework are being used in each file.
+
+## Module Structure
+
+The main modules you can import directly are:
+
+*   `azurajs`: Contains the `AzuraClient` class and global types.
+*   `azurajs/decorators`: All class, method, and parameter decorators.
+*   `azurajs/validators`: The validation system (`v`).
+*   `azurajs/plugins`: Functions for plugins like `corsPlugin`, `rateLimit`, and `proxyPlugin`.
+*   `azurajs/errors`: The `HttpError` class.
+*   `azurajs/config`: Types for the configuration file.
+*   `azurajs/types`: Types for `RequestServer`, `ResponseServer`, and other internal types.
+
+## Next Steps 📖
+
+- [⚡ **Performance**](/docs/en/advanced/performance): Understand other techniques to optimize your AzuraJS application's performance.
+- [🛠️ **TypeScript Support**](/docs/en/advanced/typescript-support): See how TypeScript is fundamental for development with AzuraJS.

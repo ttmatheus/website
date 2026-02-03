@@ -1,0 +1,74 @@
+---
+title: Swagger / OpenAPI
+description: Automatically generate interactive documentation for your API
+category: Features
+icon: lucide:book-open
+order: 7
+---
+
+# Swagger / OpenAPI 📖
+
+Documenting your API is essential for collaboration between developers. AzuraJS facilitates this process with native integration that generates OpenAPI 3.0 specifications and an interactive visual interface (Swagger UI).
+
+## Quick Setup ⚡
+
+To enable Swagger, use the `setupSwaggerWithControllers` utility function in your main file:
+
+```typescript
+import { AzuraClient, setupSwaggerWithControllers } from "azurajs";
+import { UserController } from "./controllers/UserController";
+
+const app = new AzuraClient();
+
+setupSwaggerWithControllers(app, {
+  title: "My Azura API",
+  version: "1.0.0",
+  description: "Automatic route documentation",
+  path: "/docs" // Path to access the UI
+}, [UserController]);
+
+await app.listen(3000);
+```
+
+Now, by accessing `http://localhost:3000/docs`, you will see the Swagger interface ready for use!
+
+## Swagger Decorators 🏷️
+
+You can enrich the documentation using specific decorators in your controllers and methods:
+
+### `@ApiTags(...tags)`
+Groups endpoints by categories in the interface.
+```typescript
+@ApiTags("Users")
+@Controller("/users")
+class UserController { ... }
+```
+
+### `@Swagger(config)`
+Defines the summary and detailed description of an endpoint.
+```typescript
+@Swagger({
+  summary: "Get profile",
+  description: "Returns private data of the authenticated user"
+})
+@Get("/profile")
+getProfile() { ... }
+```
+
+### `@ApiResponse(status, description, options?)`
+Documents possible route returns.
+```typescript
+@ApiResponse(200, "Success", { type: UserSchema })
+@ApiResponse(401, "Unauthorized")
+@Get()
+list() { ... }
+```
+
+## JSON Specification 📄
+
+AzuraJS also automatically exposes the specification JSON file at the `/api-spec.json` path. This allows you to import your API into tools like Postman, Insomnia, or generate clients automatically.
+
+## Next Steps 📖
+
+- [🛡️ **Rate Limiting**](/docs/en/features/rate-limiting): Protect your documented endpoints.
+- [🌐 **CORS**](/docs/en/features/cors): Ensure Swagger UI works across different domains.

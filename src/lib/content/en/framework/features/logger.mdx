@@ -1,0 +1,83 @@
+---
+title: Logger
+description: Contextual and configurable logging system in AzuraJS
+category: Features
+icon: lucide:clipboard-list
+order: 3
+---
+
+# Logger 📊
+
+AzuraJS integrates a contextual logging system that adapts to the execution environment, providing useful information during development and concise logs in production. It is configurable via `azura.config.ts`.
+
+## Logger Configuration
+
+You can control the logger's behavior in the `logging` section of your configuration file:
+
+```typescript
+// azura.config.ts
+import type { ConfigTypes } from "azurajs/config";
+
+const config: ConfigTypes = {
+  environment: "development",
+  logging: {
+    enabled: true,           // Enable or disable logging
+    showDetails: true,       // Show details like query, params, and body
+  },
+  // ... other configurations
+};
+
+export default config;
+```
+
+### `logging` Options
+
+| Property | Type | Description |
+| :--- | :--- | :--- |
+| `enabled` | `boolean` | If `true`, the logging middleware will be activated. Default: `true`. |
+| `showDetails` | `boolean` | If `true`, development logs will include request details (query, params, body). Default: `true` in `development`, `false` in `production`. |
+
+## Request Logs
+
+When logging is enabled, AzuraJS automatically records information about each received request and sent response. This includes the HTTP method, URL, response time, and HTTP status.
+
+### Example Output (Development)
+
+```bash
+· 14:30:05  GET    /api/users
+   › query: {}
+   › params: {}
+→ 200 (15ms) • IP:127.0.0.1
+```
+
+### Example Output (Production)
+
+```bash
+· 14:30:05  GET    /api/users • IP:192.168.1.100
+→ 200 (15ms) • IP:192.168.1.100
+```
+
+## Using the Internal Logger
+
+For custom logs within your application, you can import and use the `logger` function from AzuraJS. It integrates with the configured logging system.
+
+```typescript
+import { logger } from "azurajs/utils/logger";
+
+// ... inside a service or controller
+logger("info", "User successfully logged in!");
+logger("warn", "Unauthorized access attempt.");
+logger("error", "Error processing user data.", { userId: 123 });
+```
+
+### Supported Log Levels
+
+*   `"info"`
+*   `"warn"`
+*   `"error"`
+*   `"debug"`
+
+## Next Steps 📖
+
+- [🚨 **Error Handling**](/docs/en/features/error-handling): See how the logger can help debug errors.
+- [⚙️ **Configuration**](/docs/en/getting-started/configuration): Understand how the environment (`environment`) affects logging.

@@ -1,0 +1,72 @@
+---
+title: Controllers
+description: Aprenda sobre o padrão controller no AzuraJS
+category: Conceitos Principais
+icon: lucide:target
+order: 1
+---
+
+# Controllers 🎯
+
+Controllers são o coração das aplicações AzuraJS. Eles fornecem uma maneira limpa e orientada a objetos de organizar seus endpoints de API em classes lógicas e mantíveis usando decorators TypeScript.
+
+<Callout type="info" title="Por Que Usar Controllers?">
+Controllers seguem o padrão MVC (Model-View-Controller), promovendo a separação de responsabilidades. Eles mantêm sua lógica de roteamento organizada e reduzem a duplicação de código.
+</Callout>
+
+## O que é um Controller? 📚
+
+Um controller é uma classe TypeScript decorada com `@Controller` que agrupa manipuladores de rota (endpoints) relacionados. Cada método no controller representa uma rota específica e é decorado com decorators de métodos HTTP como `@Get`, `@Post`, `@Put` ou `@Delete`.
+
+```typescript
+import { Controller, Get, Post } from "azurajs/decorators";
+
+@Controller("/api/products")
+export class ProductController {
+  @Get()
+  list() {
+    return { products: [] };
+  }
+
+  @Post()
+  create() {
+    return { message: "Product created" };
+  }
+}
+```
+
+## Decorator Controller 🏷️
+
+O decorator `@Controller(prefix?)` aceita um prefixo opcional que será aplicado a todas as rotas dentro da classe.
+
+- **Uso Básico**: `@Controller("/users")` -> Todas as rotas começarão com `/users`.
+- **Sem Prefixo**: `@Controller()` -> As rotas usarão apenas seus próprios caminhos.
+- **Caminhos Aninhados**: `@Controller("/api/v1/admin")` -> Prefixo longo para todas as rotas.
+
+## Injeção de Parâmetros 💉
+
+O AzuraJS facilita o acesso aos dados da requisição através de decorators de parâmetros:
+
+| Decorator | Descrição |
+| :--- | :--- |
+| `@Req()` | Injeta o objeto de requisição completo. |
+| `@Res()` | Injeta o objeto de resposta completo. |
+| `@Body()` | Injeta o corpo da requisição (parsed JSON). |
+| `@Param(name)` | Injeta um parâmetro da URL (ex: `:id`). |
+| `@Query(name)` | Injeta um parâmetro da query string. |
+| `@Headers(name)` | Injeta um header específico ou todos. |
+| `@Cookies(name)` | Injeta um cookie específico ou todos. |
+| `@Ip()` | Injeta o endereço IP do cliente. |
+
+## Melhores Práticas ✨
+
+1.  **Responsabilidade Única**: Cada controller deve lidar com um único recurso ou domínio (ex: `UserController`, `OrderController`).
+2.  **Use Services**: Mantenha a lógica de negócio pesada em classes de serviço, deixando o controller apenas para lidar com HTTP.
+3.  **Respostas Consistentes**: Tente manter um padrão de resposta JSON em todos os métodos.
+4.  **Tratamento de Erros**: Use a classe `HttpError` para lançar erros com códigos de status específicos.
+
+## Próximos Passos 📖
+
+- [🛣️ **Routing**](/docs/pt/conceitos/routing): Aprenda sobre padrões de rota e parâmetros.
+- [🏷️ **Decorators**](/docs/pt/conceitos/decorators): Domine todos os decorators disponíveis.
+- [🛡️ **Validação**](/docs/pt/recursos/validacao): Valide dados de requisição automaticamente.

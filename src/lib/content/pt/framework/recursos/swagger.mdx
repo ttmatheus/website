@@ -1,0 +1,74 @@
+---
+title: Swagger / OpenAPI
+description: Gere documentação interativa para sua API automaticamente
+category: Recursos
+icon: lucide:book-open
+order: 7
+---
+
+# Swagger / OpenAPI 📖
+
+Documentar sua API é essencial para a colaboração entre desenvolvedores. O AzuraJS facilita esse processo com uma integração nativa que gera especificações OpenAPI 3.0 e uma interface visual interativa (Swagger UI).
+
+## Configuração Rápida ⚡
+
+Para habilitar o Swagger, use a função utilitária `setupSwaggerWithControllers` no seu arquivo principal:
+
+```typescript
+import { AzuraClient, setupSwaggerWithControllers } from "azurajs";
+import { UserController } from "./controllers/UserController";
+
+const app = new AzuraClient();
+
+setupSwaggerWithControllers(app, {
+  title: "Minha API Azura",
+  version: "1.0.0",
+  description: "Documentação automática das rotas",
+  path: "/docs" // Caminho para acessar a UI
+}, [UserController]);
+
+await app.listen(3000);
+```
+
+Agora, ao acessar `http://localhost:3000/docs`, você verá a interface do Swagger pronta para uso!
+
+## Decorators do Swagger 🏷️
+
+Você pode enriquecer a documentação usando decorators específicos nos seus controllers e métodos:
+
+### `@ApiTags(...tags)`
+Agrupa endpoints por categorias na interface.
+```typescript
+@ApiTags("Usuários")
+@Controller("/users")
+class UserController { ... }
+```
+
+### `@Swagger(config)`
+Define o sumário e a descrição detalhada de um endpoint.
+```typescript
+@Swagger({
+  summary: "Obter perfil",
+  description: "Retorna os dados privados do usuário autenticado"
+})
+@Get("/profile")
+getProfile() { ... }
+```
+
+### `@ApiResponse(status, description, options?)`
+Documenta os possíveis retornos da rota.
+```typescript
+@ApiResponse(200, "Sucesso", { type: UserSchema })
+@ApiResponse(401, "Não autorizado")
+@Get()
+list() { ... }
+```
+
+## Especificação JSON 📄
+
+O AzuraJS também expõe automaticamente o arquivo JSON da especificação no caminho `/api-spec.json`. Isso permite que você importe sua API em ferramentas como Postman, Insomnia ou gere clientes automaticamente.
+
+## Próximos Passos 📖
+
+- [🛡️ **Rate Limiting**](/docs/pt/recursos/rate-limiting): Proteja seus endpoints documentados.
+- [🌐 **CORS**](/docs/pt/recursos/cors): Garanta que o Swagger UI funcione em diferentes domínios.

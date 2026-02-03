@@ -1,0 +1,60 @@
+---
+title: Cluster Mode
+description: Aproveite todos os núcleos da CPU para escalar sua aplicação AzuraJS
+category: Recursos
+icon: lucide:server-cog
+order: 6
+---
+
+# Cluster Mode ⚡
+
+O AzuraJS oferece suporte nativo ao modo cluster, permitindo que sua aplicação utilize todos os núcleos disponíveis da CPU. Isso é crucial para escalar aplicações Node.js e Bun, distribuindo a carga de trabalho entre múltiplos processos e melhorando significativamente a performance e a resiliência.
+
+## Como Funciona
+
+Quando o modo cluster é ativado, o AzuraJS cria um processo *master* e vários processos *worker*. O processo master é responsável por gerenciar os workers, reiniciá-los em caso de falha e distribuir as requisições de entrada entre eles. Cada worker é uma instância independente da sua aplicação.
+
+## Configuração
+
+Para habilitar o modo cluster, basta definir `cluster: true` no seu arquivo `azura.config.ts`:
+
+```typescript
+// azura.config.ts
+import type { ConfigTypes } from "azurajs/config";
+
+const config: ConfigTypes = {
+  environment: "production", // Cluster mode é mais comum em produção
+  server: {
+    port: 3000,
+    cluster: true,           // Habilita o modo cluster
+    // workers: 4,            // Opcional: número específico de workers (padrão: número de CPUs)
+  },
+  // ...
+};
+
+export default config;
+```
+
+### Opções de `cluster`
+
+| Propriedade | Tipo | Descrição |
+| :--- | :--- | :--- |
+| `cluster` | `boolean` | Se `true`, o AzuraJS iniciará em modo cluster. Padrão: `false`. |
+| `workers` | `number` | Opcional. Número de processos worker a serem criados. Se não especificado, usará o número de núcleos da CPU. |
+
+## Benefícios do Cluster Mode
+
+*   **Performance Aprimorada**: Distribui a carga entre os núcleos da CPU, processando mais requisições simultaneamente.
+*   **Alta Disponibilidade**: Se um processo worker falhar, o master pode reiniciá-lo sem derrubar toda a aplicação.
+*   **Utilização Eficiente de Recursos**: Maximiza o uso do hardware do servidor.
+
+## Considerações Importantes
+
+*   **Estado Compartilhado**: Evite armazenar estado na memória dos processos worker, pois cada um é isolado. Use bancos de dados, Redis ou outras soluções de cache distribuído para estado compartilhado.
+*   **Sessões**: Se você usa sessões, elas devem ser armazenadas em um local centralizado (ex: Redis) para que todos os workers possam acessá-las.
+*   **Logging**: Certifique-se de que seu sistema de logging seja capaz de lidar com logs de múltiplos processos worker (ex: enviando para um serviço centralizado como ELK Stack ou Grafana Loki).
+
+## Próximos Passos 📖
+
+- [🚨 **Tratamento de Erros**](/docs/pt/recursos/error-handling): Entenda como lidar com erros em um ambiente clusterizado.
+- [📊 **Logger**](/docs/pt/recursos/logger): Configure seu logger para o modo cluster.

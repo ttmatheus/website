@@ -1,0 +1,83 @@
+---
+title: Custom Servers
+description: Use AzuraJS with custom HTTP/HTTPS servers
+category: Advanced
+icon: lucide:server
+order: 1
+---
+
+# Custom Servers 🛠️
+
+While AzuraJS provides a built-in HTTP/HTTPS server through the `app.listen()` method, it is flexible enough to be integrated with your own Node.js servers (`http.createServer` or `https.createServer`). This offers full control over server configuration, allowing integrations with other libraries or specific initialization logic.
+
+## Integrating with `http.createServer`
+
+You can pass the `app.handler` function directly to your native HTTP server. This allows AzuraJS to process requests while you manage the server's lifecycle.
+
+```typescript
+import { AzuraClient } from "azurajs";
+import { applyDecorators, Controller, Get } from "azurajs/decorators";
+import * as http from "node:http";
+
+@Controller("/api")
+class MyController {
+  @Get("/hello")
+  hello() {
+    return "Hello from the custom server!";
+  }
+}
+
+const app = new AzuraClient();
+applyDecorators(app, [MyController]);
+
+const server = http.createServer(app.handler);
+
+server.listen(3000, () => {
+  console.log("🚀 Custom HTTP server running at http://localhost:3000");
+});
+```
+
+## Integrating with `https.createServer`
+
+To use HTTPS, you will need to provide your SSL keys. The process is similar, but using the `https` module.
+
+```typescript
+import { AzuraClient } from "azurajs";
+import { applyDecorators, Controller, Get } from "azurajs/decorators";
+import * as https from "node:https";
+import * as fs from "node:fs";
+
+// Example certificates (replace with your own)
+const privateKey = fs.readFileSync("path/to/your/key.pem", "utf8");
+const certificate = fs.readFileSync("path/to/your/cert.pem", "utf8");
+
+const credentials = { key: privateKey, cert: certificate };
+
+@Controller("/api")
+class SecureController {
+  @Get("/secure-hello")
+  secureHello() {
+    return "Hello from the custom HTTPS server!";
+  }
+}
+
+const app = new AzuraClient();
+applyDecorators(app, [SecureController]);
+
+const httpsServer = https.createServer(credentials, app.handler);
+
+httpsServer.listen(3001, () => {
+  console.log("🔒 Custom HTTPS server running at https://localhost:3001");
+});
+```
+
+## Advantages of Custom Servers
+
+*   **Full Control**: Manage the server lifecycle, events, and low-level configurations.
+*   **Flexible Integration**: Combine AzuraJS with other server libraries or reverse proxies more granularly.
+*   **Advanced Configurations**: Implement load balancing logic, WebSockets, or other network functionalities directly in your server.
+
+## Next Steps 📖
+
+- [⚙️ **Configuration**](/docs/en/getting-started/configuration): See how to configure HTTPS and other options directly in `azura.config.ts`.
+- [⚡ **Cluster Mode**](/docs/en/features/cluster-mode): Understand how AzuraJS manages multiple server processes.

@@ -1,0 +1,81 @@
+---
+title: Welcome to AzuraJS
+description: A modern, fast, and TypeScript-first web framework for Node.js and Bun
+category: Getting Started
+icon: lucide:sparkles
+status: new
+date: 2026-02-01
+order: 1
+---
+
+# Welcome to AzuraJS ⚡
+
+AzuraJS is a modern, high-performance web framework for **Node.js** and **Bun** that brings the power of TypeScript **decorators** to backend development. Build elegant and type-safe APIs with a clean and intuitive syntax.
+
+<Callout type="info" title="Who is AzuraJS for?">
+Ideal for developers who want to create fast and robust REST APIs with TypeScript, without the complexity of larger frameworks.
+</Callout>
+
+## ✨ Why Choose AzuraJS?
+
+| Feature | Description |
+| :--- | :--- |
+| **TypeScript Decorators** | Organize your code with modern decorators - an elegant syntax that makes your APIs more readable. |
+| **Exceptional Performance** | Designed from the ground up for maximum speed, with minimal overhead and zero unnecessary external dependencies. |
+| **Zero Dependencies** | Lightweight and efficient - only 1 core dependency. No weight from thousands of packages in node_modules. |
+| **TypeScript First** | Developed with TypeScript in mind from the start, with full types and perfect IntelliSense. |
+| **Express Compatible** | Use middlewares and plugins from the Express ecosystem - leverage thousands of ready-made solutions. |
+| **Flexible Configuration** | Configure via TypeScript, JSON, or YAML file - choose the format you prefer. |
+
+## 🎨 Main Features
+
+AzuraJS comes with everything you need to build professional APIs:
+
+*   **💉 Smart Parameter Injection**: Powerful decorators like `@Body`, `@Query`, `@Param`, `@Req`, `@Res`, `@Headers`, `@Cookies`.
+*   **✅ Built-in Validation**: Full DTO and schema validation system with type safety.
+*   **🍪 Cookie Management**: Native cookie parser and serializer - work with cookies simply.
+*   **🌐 Configurable CORS**: Production-ready CORS plugin with flexible configuration.
+*   **🛡️ Integrated Rate Limiting**: Protect your application against abuse and DDoS with a per-route configurable system.
+*   **⚡ Cluster Mode**: Take advantage of all CPU cores with native cluster support.
+*   **📊 Contextual Logging**: Smart logging system that adapts to the environment.
+*   **🚨 Robust Error Handling**: `HttpError` class and error middleware for structured handling.
+
+## 🚀 See How Simple It Is
+
+Here is a complete CRUD API example in less than 30 lines:
+
+```typescript
+import { AzuraClient } from "azurajs";
+import { applyDecorators, Controller, Get, Post, Body, Param } from "azurajs/decorators";
+
+@Controller("/api/users")
+class UserController {
+  @Get()
+  getAllUsers() {
+    return { users: ["Alice", "Bob", "Charlie"] };
+  }
+
+  @Get("/:id")
+  getUser(@Param("id") id: string) {
+    return { id, name: `User ${id}` };
+  }
+
+  @Post()
+  createUser(@Body() data: any) {
+    return { id: Date.now(), ...data };
+  }
+}
+
+const app = new AzuraClient();
+applyDecorators(app, [UserController]);
+await app.listen();
+```
+
+## 📚 Next Steps
+
+Start your journey with AzuraJS following these guides:
+
+*   [📦 **Installation**](/docs/en/getting-started/installation): Install AzuraJS and configure your environment.
+*   [🚀 **Quick Start**](/docs/en/getting-started/quick-start): Create your first complete REST API.
+*   [⚙️ **Configuration**](/docs/en/getting-started/configuration): Explore all configuration options.
+*   [🎯 **Controllers**](/docs/en/concepts/controllers): Master the controller pattern.

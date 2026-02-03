@@ -1,0 +1,88 @@
+---
+title: Instalação
+description: Instale AzuraJS no seu projeto em minutos
+category: Começando
+icon: lucide:package
+order: 2
+---
+
+# Instalação 📦
+
+Comece com AzuraJS instalando-o no seu projeto Node.js ou Bun. Este guia vai te levar do zero até uma aplicação funcionando em poucos minutos.
+
+## Pré-requisitos ✅
+
+Antes de começar, você vai precisar de:
+
+<Callout type="warning" title="Requisitos Mínimos">
+- **Node.js** 18+ ou **Bun** 1.0+
+- **TypeScript** 5.0+ (recomendado para usar decorators)
+- Um gerenciador de pacotes: npm, yarn, pnpm ou bun
+</Callout>
+
+## Instalação do Pacote 📥
+
+Escolha seu gerenciador de pacotes favorito e instale o AzuraJS:
+
+<Tabs items={["npm", "pnpm", "yarn", "bun"]}>
+  <Tab value="npm">
+```bash
+npm install azurajs
+```
+  </Tab>
+  <Tab value="pnpm">
+```bash
+pnpm add azurajs
+```
+  </Tab>
+  <Tab value="yarn">
+```bash
+yarn add azurajs
+```
+  </Tab>
+  <Tab value="bun">
+```bash
+bun add azurajs
+```
+  </Tab>
+</Tabs>
+
+## Configuração TypeScript 🛠️
+
+Como o AzuraJS utiliza decorators, você precisa habilitá-los no seu `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
+```
+
+## Estrutura Recomendada 📁
+
+Para projetos profissionais, sugerimos a seguinte estrutura:
+
+```text
+my-azura-api/
+├── src/
+│   ├── controllers/
+│   │   └── UserController.ts
+│   ├── middlewares/
+│   ├── services/
+│   └── index.ts
+├── azura.config.ts
+├── tsconfig.json
+└── package.json
+```
+
+## Próximos Passos 🚀
+
+Agora que você tem o AzuraJS instalado, siga para o [Início Rápido](/docs/pt/comecando/inicio-rapido) para criar sua primeira API.

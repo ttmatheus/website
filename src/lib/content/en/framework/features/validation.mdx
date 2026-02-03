@@ -1,0 +1,69 @@
+---
+title: Validation
+description: Validate request data in an elegant and type-safe way
+category: Features
+icon: lucide:shield-check
+order: 1
+---
+
+# Validation ✅
+
+AzuraJS features a powerful built-in validation system that allows you to ensure that data received by your API is in the correct format before it even reaches your controller logic.
+
+## The Azura Validator 🛡️
+
+Inspired by libraries like Zod, the AzuraJS validator offers a fluent syntax and automatic type inference.
+
+### Schema Example
+
+```typescript
+import { v } from "azurajs/validators";
+
+const CreateUserSchema = v.object({
+  username: v.string().min(3).max(20),
+  email: v.string().email(),
+  age: v.number().int().min(18).optional(),
+});
+
+// Type inference
+type CreateUserDto = v.infer<typeof CreateUserSchema>;
+```
+
+## Validating in Controller 🎯
+
+You can use the schema directly within your method to validate the request body:
+
+```typescript
+@Post()
+async createUser(@Body() body: any, @Res() res: ResponseServer) {
+  const result = CreateUserSchema.safeParse(body);
+
+  if (!result.success) {
+    return res.status(400).json({
+      error: "Validation failed",
+      details: result.error.format()
+    });
+  }
+
+  const data = result.data; // Now 'data' is fully typed!
+  // ... creation logic
+}
+```
+
+## Supported Data Types 📊
+
+- `v.string()`: Supports `.email()`, `.url()`, `.uuid()`, `.min()`, `.max()`.
+- `v.number()`: Supports `.int()`, `.positive()`, `.min()`, `.max()`.
+- `v.boolean()`: For true/false values.
+- `v.array(type)`: For lists of elements.
+- `v.object(shape)`: For nested structures.
+- `v.enum([values])`: For specific values.
+
+## Automatic Validation (Decorators) 🏷️
+
+In future versions, AzuraJS will support automatic validation via decorators directly in the method signature. Stay tuned for updates!
+
+## Next Steps 📖
+
+- [🍪 **Cookies**](/docs/en/features/cookies): Native cookie management.
+- [🚨 **Error Handling**](/docs/en/features/error-handling): How to handle validation failures.

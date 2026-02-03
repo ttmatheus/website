@@ -1,0 +1,133 @@
+---
+title: AzuraJS CDN
+description: Manage cache, signed URLs, and CDN purging with AzuraJS
+category: Features
+icon: lucide:cloud
+order: 9
+---
+
+# AzuraJS CDN ☁️
+
+The `@azurajs/cdn` is a complementary package to AzuraJS that offers functionalities for integrating and managing content delivery networks (CDN). It simplifies tasks such as generating signed URLs for secure access to private resources and purging cache to ensure that the latest content is always delivered.
+
+## Installation
+
+Install the `@azurajs/cdn` package in your project:
+
+<Tabs items={["npm", "pnpm", "yarn", "bun"]}>
+  <Tab value="npm">
+```bash
+npm install @azurajs/cdn
+```
+  </Tab>
+  <Tab value="pnpm">
+```bash
+pnpm add @azurajs/cdn
+```
+  </Tab>
+  <Tab value="yarn">
+```bash
+yarn add @azurajs/cdn
+```
+  </Tab>
+  <Tab value="bun">
+```bash
+bun add @azurajs/cdn
+```
+  </Tab>
+</Tabs>
+
+## Configuration
+
+You can configure the CDN in your `azura.config.ts`:
+
+```typescript
+// azura.config.ts
+import type { ConfigTypes } from "azurajs/config";
+
+const config: ConfigTypes = {
+  // ...
+  cdn: {
+    provider: "cloudflare", // or "aws-s3", "azure-blob", etc.
+    apiKey: process.env.CDN_API_KEY, // API key for your CDN provider
+    domain: "cdn.yourwebsite.com", // Your CDN domain
+    // Provider-specific configurations
+    cloudflare: {
+      zoneId: process.env.CLOUDFLARE_ZONE_ID,
+      email: process.env.CLOUDFLARE_EMAIL,
+    },
+    // ...
+  },
+};
+
+export default config;
+```
+
+## Generating Signed URLs
+
+Signed URLs allow you to grant temporary and secure access to private resources stored in your CDN, without exposing the bucket or access key. The `@azurajs/cdn` offers a service to generate these URLs.
+
+```typescript
+import { Controller, Get, Query } from "azurajs/decorators";
+import { AzuraCDN } from "@azurajs/cdn";
+
+@Controller("/files")
+export class FileController {
+  private cdnService: AzuraCDN;
+
+  constructor() {
+    this.cdnService = new AzuraCDN(); // Initializes with azura.config.ts configuration
+  }
+
+  @Get("/download")
+  async getSignedUrl(@Query("path") filePath: string) {
+    if (!filePath) {
+      return { error: "File path is required" };
+    }
+    const signedUrl = await this.cdnService.getSignedUrl(filePath, { expiresIn: 3600 }); // Expires in 1 hour
+    return { signedUrl };
+  }
+}
+```
+
+### `getSignedUrl` Options
+
+| Option | Type | Description |
+| :--- | :--- | :--- |
+| `expiresIn` | `number` | URL expiration time in seconds. Default: `3600` (1 hour). |
+| `contentType` | `string` | File content type (e.g., `image/jpeg`). |
+
+## Cache Purging
+
+When you update a resource on your origin server, the CDN may continue serving the old cached version. Cache purging forces the CDN to fetch the latest version. The `@azurajs/cdn` makes it easy to purge specific files or the entire cache.
+
+```typescript
+import { Controller, Post, Body } from "azurajs/decorators";
+import { AzuraCDN } from "@azurajs/cdn";
+
+@Controller("/admin/cdn")
+export class CdnAdminController {
+  private cdnService: AzuraCDN;
+
+  constructor() {
+    this.cdnService = new AzuraCDN();
+  }
+
+  @Post("/purge")
+  async purgeCache(@Body() body: { urls?: string[]; all?: boolean }) {
+    if (body.all) {
+      await this.cdnService.purgeAllCache();
+      return { message: "CDN cache purged successfully!" };
+    } else if (body.urls && body.urls.length > 0) {
+      await this.cdnService.purgeUrls(body.urls);
+      return { message: "Specific URLs purged successfully!" };
+    }
+    return { error: "No URL or 'all' option provided for purging." };
+  }
+}
+```
+
+## Next Steps 📖
+
+- [⚙️ **Configuration**](/docs/en/getting-started/configuration): See how to configure the `cdn` object in your configuration file.
+- [🛡️ **Rate Limiting**](/docs/en/features/rate-limiting): Protect your CDN administration endpoints with Rate Limiting.

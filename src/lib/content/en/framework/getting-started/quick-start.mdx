@@ -1,0 +1,129 @@
+---
+title: Quick Start
+description: Create your first complete REST API following our step-by-step tutorial
+category: Getting Started
+icon: lucide:zap
+order: 3
+---
+
+# Quick Start 🚀
+
+Build your first complete API with AzuraJS in 5 minutes. In this guide, we will create a user management API with CRUD operations.
+
+## Step 1: Configuration File ⚙️
+
+Create the `azura.config.ts` file in your project root to control server behavior:
+
+```typescript
+import type { ConfigTypes } from "azurajs/config";
+
+const config: ConfigTypes = {
+  environment: "development",
+  server: {
+    port: 3000,
+    cluster: false,
+    ipHost: true,
+  },
+  logging: {
+    enabled: true,
+    showDetails: true,
+  },
+  plugins: {
+    cors: {
+      enabled: true,
+      origins: ["*"],
+      methods: ["GET", "POST", "PUT", "DELETE"],
+    }
+  }
+};
+
+export default config;
+```
+
+## Step 2: Create the Controller 🎯
+
+Create `src/controllers/UserController.ts`. Controllers organize your routes into logical classes:
+
+```typescript
+import { Controller, Get, Post, Body, Param, Res } from "azurajs/decorators";
+import type { ResponseServer } from "azurajs/types";
+
+const users = [
+  { id: 1, name: "Alice" },
+  { id: 2, name: "Bob" },
+];
+
+@Controller("/api/users")
+export class UserController {
+  @Get()
+  getAllUsers(@Res() res: ResponseServer) {
+    res.json({ success: true, data: users });
+  }
+
+  @Get("/:id")
+  getUserById(@Param("id") id: string, @Res() res: ResponseServer) {
+    const user = users.find(u => u.id === Number(id));
+    if (!user) return res.status(404).json({ success: false, error: "Not found" });
+    res.json({ success: true, data: user });
+  }
+
+  @Post()
+  createUser(@Body() body: any, @Res() res: ResponseServer) {
+    const newUser = { id: users.length + 1, ...body };
+    users.push(newUser);
+    res.status(201).json({ success: true, data: newUser });
+  }
+}
+```
+
+## Step 3: Create Main File 🖥️
+
+Create `src/index.ts` to initialize the server and register your controllers:
+
+```typescript
+import { AzuraClient } from "azurajs";
+import { applyDecorators } from "azurajs/decorators";
+import { UserController } from "./controllers/UserController";
+
+const app = new AzuraClient();
+
+// Register controllers automatically
+applyDecorators(app, [UserController]);
+
+await app.listen().then(() => {
+  console.log("🚀 API ready at http://localhost:3000");
+});
+```
+
+## Step 4: Run the Server 🏃
+
+Use **Bun** for the best experience or **tsx** with Node.js:
+
+<Tabs items={["Bun", "Node (tsx)"]}>
+  <Tab value="Bun">
+```bash
+bun src/index.ts
+```
+  </Tab>
+  <Tab value="Node (tsx)">
+```bash
+npx tsx src/index.ts
+```
+  </Tab>
+</Tabs>
+
+## Step 5: Test the API 🧪
+
+You can test using `curl` or any HTTP client:
+
+```bash
+# List users
+curl http://localhost:3000/api/users
+
+# Create user
+curl -X POST http://localhost:3000/api/users \
+     -H "Content-Type: application/json" \
+     -d '{"name": "Charlie"}'
+```
+
+🎉 **Congratulations!** You've built your first API with AzuraJS!

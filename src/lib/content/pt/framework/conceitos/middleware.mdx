@@ -1,0 +1,114 @@
+---
+title: Middleware
+description: Intercepte e modifique requisições e respostas no AzuraJS
+category: Conceitos Principais
+icon: lucide:plug
+order: 4
+---
+
+# Middleware 🔌
+
+Middleware são funções que têm acesso aos objetos de requisição (`req`), resposta (`res`) e à próxima função de middleware no ciclo de requisição-resposta de uma aplicação AzuraJS. Eles podem executar código, fazer alterações nos objetos de requisição e resposta, finalizar o ciclo de requisição-resposta ou chamar o próximo middleware.
+
+## Como Funciona o Middleware
+
+Cada função de middleware recebe três argumentos:
+
+1.  `req`: O objeto de requisição (`RequestServer`).
+2.  `res`: O objeto de resposta (`ResponseServer`).
+3.  `next`: Uma função que, quando chamada, executa o próximo middleware na pilha.
+
+```typescript
+import type { RequestServer, ResponseServer } from "azurajs/types";
+
+const loggerMiddleware = (req: RequestServer, res: ResponseServer, next: () => Promise<void>) => {
+  console.log(`Requisição recebida: ${req.method} ${req.url}`);
+  next(); // Chama o próximo middleware ou o handler da rota
+};
+```
+
+## Registrando Middleware
+
+Você pode registrar middleware globalmente para todas as rotas ou especificamente para um controller ou rota.
+
+### Globalmente
+
+Use o método `app.use()` para aplicar middleware a todas as requisições.
+
+```typescript
+import { AzuraClient } from "azurajs";
+
+const app = new AzuraClient();
+
+app.use(loggerMiddleware);
+app.use(anotherMiddleware);
+
+// ... registre controllers e inicie o servidor
+```
+
+### Por Controller
+
+Você pode aplicar middleware a um controller inteiro usando o decorator `@UseMiddleware`.
+
+```typescript
+import { Controller, Get, UseMiddleware } from "azurajs/decorators";
+import type { RequestServer, ResponseServer } from "azurajs/types";
+
+const authMiddleware = (req: RequestServer, res: ResponseServer, next: () => Promise<void>) => {
+  if (!req.headers.authorization) {
+    return res.status(401).send("Não autorizado");
+  }
+  next();
+};
+
+@UseMiddleware(authMiddleware)
+@Controller("/admin")
+export class AdminController {
+  @Get("/dashboard")
+  getDashboard() {
+    return "Painel de Administração";
+  }
+}
+```
+
+### Por Rota
+
+O decorator `@UseMiddleware` também pode ser aplicado a métodos de rota específicos.
+
+```typescript
+import { Controller, Get, UseMiddleware } from "azurajs/decorators";
+
+const logTimeMiddleware = (req: RequestServer, res: ResponseServer, next: () => Promise<void>) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    console.log(`Requisição ${req.url} levou ${Date.now() - start}ms`);
+  });
+  next();
+};
+
+@Controller("/data")
+export class DataController {
+  @UseMiddleware(logTimeMiddleware)
+  @Get("/heavy-report")
+  getHeavyReport() {
+    // ... lógica que pode demorar
+    return "Relatório pesado";
+  }
+}
+```
+
+## Middleware Assíncrono
+
+Middleware podem ser funções assíncronas. Certifique-se de usar `await next()` para garantir que o próximo middleware ou handler de rota seja executado e que a resposta seja aguardada.
+
+```typescript
+const asyncMiddleware = async (req, res, next) => {
+  await someAsyncOperation();
+  await next();
+};
+```
+
+## Próximos Passos 📖
+
+- [⚙️ **Configuração**](/docs/pt/comecando/configuracao): Veja como configurar middlewares globais via `azura.config.ts`.
+- [🚨 **Tratamento de Erros**](/docs/pt/recursos/error-handling): Entenda como middlewares de erro podem ser usados para centralizar o tratamento de exceções.

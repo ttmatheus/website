@@ -1,0 +1,77 @@
+---
+title: TypeScript Support
+description: Aproveite ao máximo o TypeScript com AzuraJS
+category: Avançado
+icon: lucide:type
+order: 4
+---
+
+# TypeScript Support 🛠️
+
+O AzuraJS foi construído do zero com TypeScript, o que significa que ele oferece suporte de primeira classe para tipagem estática, autocompletar e verificação de erros em tempo de compilação. Isso resulta em um código mais robusto, fácil de manter e com menos bugs.
+
+## Configuração Essencial
+
+Para aproveitar ao máximo o TypeScript com AzuraJS, certifique-se de que seu `tsconfig.json` esteja configurado corretamente, especialmente as opções para decorators:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "experimentalDecorators": true, // Habilita o uso de decorators
+    "emitDecoratorMetadata": true, // Emite metadados para decorators (necessário para injeção de dependência)
+    "strict": true, // Ativa todas as verificações de tipo estritas
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
+```
+
+## Tipagem Forte e Inferência
+
+O AzuraJS exporta todos os seus tipos, permitindo que você tenha tipagem completa para `AzuraClient`, `RequestServer`, `ResponseServer`, `ConfigTypes` e todos os decorators e plugins. Isso significa que seu editor de código pode fornecer autocompletar inteligente e identificar erros antes mesmo de você executar o código.
+
+```typescript
+import { AzuraClient } from "azurajs";
+import { Controller, Get, Req, Res, Body } from "azurajs/decorators";
+import type { RequestServer, ResponseServer } from "azurajs/types";
+import { v } from "azurajs/validators";
+
+// Exemplo de inferência de tipo com o validador
+const UserSchema = v.object({
+  name: v.string(),
+  email: v.string().email(),
+});
+type UserDto = v.infer<typeof UserSchema>;
+
+@Controller("/users")
+export class UserController {
+  @Get("/:id")
+  getUser(@Req() req: RequestServer, @Res() res: ResponseServer) {
+    // req e res são totalmente tipados aqui
+    const userId: string = req.params.id; // TypeScript sabe que 'id' é string
+    res.json({ id: userId, name: "John Doe" });
+  }
+
+  @Post()
+  createUser(@Body() user: UserDto) {
+    // 'user' é tipado como UserDto, com 'name' e 'email'
+    console.log(user.name, user.email);
+    return { message: "User created", user };
+  }
+}
+```
+
+## Benefícios do TypeScript no AzuraJS
+
+*   **Prevenção de Erros**: Muitos erros comuns são pegos em tempo de compilação, reduzindo a necessidade de depuração em tempo de execução.
+*   **Melhor Manutenibilidade**: O código é mais fácil de entender e modificar, especialmente em grandes equipes ou projetos complexos.
+*   **Refatoração Segura**: O compilador TypeScript ajuda a garantir que as refatorações não quebrem o código existente.
+*   **Documentação Implícita**: Os tipos servem como uma forma de documentação para as interfaces da sua API.
+
+## Próximos Passos 📖
+
+- [🧬 **Extensões de Tipo**](/docs/pt/avancado/extensoes-de-tipo): Aprenda a estender os tipos do AzuraJS para suas necessidades específicas.
+- [📦 **Importações Modulares**](/docs/pt/avancado/importacoes-modulares): Otimize seu bundle aproveitando a modularidade do TypeScript.

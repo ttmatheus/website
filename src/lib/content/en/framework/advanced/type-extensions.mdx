@@ -1,0 +1,95 @@
+---
+title: Type Extensions
+description: Extend AzuraJS request and response types
+category: Advanced
+icon: lucide:type
+order: 2
+---
+
+# Type Extensions 🧬
+
+AzuraJS is built with TypeScript and offers a flexible way to extend the request (`RequestServer`) and response (`ResponseServer`) types to include custom properties. This is extremely useful when you add data to the request object through middlewares (for example, authenticated user information) or when you need specific response methods.
+
+## Extending `RequestServer`
+
+To add properties to the `req` object, you can use TypeScript's *declaration merging* technique. Create a type declaration file (e.g., `src/types/express.d.ts` or `src/types/azura.d.ts`) and declare a module for `azurajs/types`.
+
+```typescript
+// src/types/azura.d.ts
+
+declare module "azurajs/types" {
+  interface RequestServer {
+    user?: {
+      id: string;
+      email: string;
+      roles: string[];
+    };
+    tenantId?: string;
+  }
+}
+```
+
+Now, anywhere in your application, the `req` object will have these new properties available and typed:
+
+```typescript
+import { Controller, Get, Req } from "azurajs/decorators";
+import type { RequestServer } from "azurajs/types";
+
+@Controller("/profile")
+export class ProfileController {
+  @Get()
+  getProfile(@Req() req: RequestServer) {
+    // req.user is now recognized by TypeScript
+    if (!req.user) {
+      throw new Error("User not authenticated");
+    }
+    return { user: req.user };
+  }
+}
+```
+
+## Extending `ResponseServer`
+
+Similarly, you can extend the `res` object to add custom methods or properties. This is less common but can be useful for application-specific response utilities.
+
+```typescript
+// src/types/azura.d.ts
+
+declare module "azurajs/types" {
+  interface ResponseServer {
+    sendSuccess(data: any, message?: string): void;
+    sendError(statusCode: number, error: string, details?: any): void;
+  }
+}
+```
+
+And then, you can implement these methods in a middleware or use the native API to simulate:
+
+```typescript
+// Example middleware to add response methods
+import type { RequestServer, ResponseServer } from "azurajs/types";
+
+export const customResponseMiddleware = (req: RequestServer, res: ResponseServer, next: () => Promise<void>) => {
+  res.sendSuccess = (data, message = "Success") => {
+    res.status(200).json({ success: true, message, data });
+  };
+  res.sendError = (statusCode, error, details = null) => {
+    res.status(statusCode).json({ success: false, error, details });
+  };
+  next();
+};
+
+// Usage in controller
+@Controller("/data")
+export class DataController {
+  @Get()
+  getData(@Res() res: ResponseServer) {
+    res.sendSuccess({ items: [] }, "Data loaded");
+  }
+}
+```
+
+## Next Steps 📖
+
+- [🔌 **Middleware**](/docs/en/concepts/middleware): Understand how middlewares can populate extended request properties.
+- [🚨 **Error Handling**](/docs/en/features/error-handling): See how to use `HttpError` for consistent error responses.

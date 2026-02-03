@@ -1,0 +1,106 @@
+---
+title: Configuração
+description: Explore todas as opções de configuração e personalize seu servidor
+category: Começando
+icon: lucide:settings
+order: 5
+---
+
+# Configuração ⚙️
+
+O AzuraJS é altamente configurável através do arquivo `azura.config.ts` (ou `.js`, `.json`, `.yaml`). Este arquivo é automaticamente carregado na inicialização do `AzuraClient` e permite personalizar o comportamento do servidor, plugins e ambiente.
+
+## Estrutura do Arquivo de Configuração
+
+```typescript
+// azura.config.ts
+import type { ConfigTypes } from "azurajs/config";
+
+const config: ConfigTypes = {
+  // Ambiente da aplicação (development, production, test)
+  environment: "development",
+
+  // Configurações do servidor HTTP
+  server: {
+    port: 3000,              // Porta para o servidor escutar
+    ipHost: true,            // Tentar resolver o IP do host automaticamente
+    https: false,            // Habilitar HTTPS (requer certificados)
+    cluster: false,          // Habilitar modo cluster para múltiplos núcleos
+    trustProxy: false,       // Configuração para proxies reversos (ex: Nginx, Cloudflare)
+  },
+
+  // Configurações de logging
+  logging: {
+    enabled: true,           // Ativar/desativar logs
+    showDetails: true,       // Mostrar detalhes da requisição nos logs
+  },
+
+  // Configurações de plugins
+  plugins: {
+    cors: {
+      enabled: false,        // Habilitar Cross-Origin Resource Sharing
+      origins: ["*"],        // Origens permitidas (ex: ["http://localhost:8080"])
+      methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // Métodos permitidos
+      allowedHeaders: ["Content-Type", "Authorization"], // Headers permitidos
+    },
+    rateLimit: {
+      enabled: false,        // Habilitar Rate Limiting
+      limit: 100,            // Número máximo de requisições
+      timeframe: 60000,      // Período em milissegundos (ex: 60000ms = 1 minuto)
+    },
+    // Outros plugins como proxy, etc.
+  },
+
+  // Variáveis de ambiente (opcional, pode ser carregado de .env)
+  env: {
+    DATABASE_URL: "mongodb://localhost:27017/azura_db",
+  },
+};
+
+export default config;
+```
+
+## Opções de Configuração Detalhadas
+
+### `environment: string`
+Define o ambiente de execução da aplicação. Valores comuns são `"development"`, `"production"`, `"test"`. Afeta o comportamento de logs e plugins.
+
+### `server: ServerConfig`
+
+| Propriedade | Tipo | Descrição |
+| :--- | :--- | :--- |
+| `port` | `number` | Porta HTTP/HTTPS para o servidor. Padrão: `3000`. |
+| `ipHost` | `boolean` | Se `true`, tenta resolver o IP do host. Padrão: `true`. |
+| `https` | `boolean` | Habilita HTTPS. Requer `key` e `cert`. Padrão: `false`. |
+| `key` | `string` | Caminho para o arquivo da chave privada SSL. |
+| `cert` | `string` | Caminho para o arquivo do certificado SSL. |
+| `cluster` | `boolean` | Habilita o modo cluster para usar múltiplos núcleos da CPU. Padrão: `false`. |
+| `trustProxy` | `boolean \| number \| string \| string[]` | Configura o reconhecimento de IPs de proxies reversos. Padrão: `false`. |
+
+### `logging: LoggingConfig`
+
+| Propriedade | Tipo | Descrição |
+| :--- | :--- | :--- |
+| `enabled` | `boolean` | Ativa ou desativa o logging de requisições. Padrão: `true`. |
+| `showDetails` | `boolean` | Mostra detalhes como query, params e body nos logs. Padrão: `true` em `development`. |
+
+### `plugins: PluginsConfig`
+
+Contém configurações para plugins integrados como CORS e Rate Limiting.
+
+## Carregamento de Variáveis de Ambiente
+
+O AzuraJS pode carregar variáveis de ambiente de um arquivo `.env` automaticamente. Basta criar um arquivo `.env` na raiz do projeto:
+
+```dotenv
+# .env
+PORT=8080
+DATABASE_URL=postgres://user:pass@host:port/db
+```
+
+E acessá-las via `process.env` ou através da seção `env` do `azura.config.ts`.
+
+## Próximos Passos 📖
+
+- [🎯 **Controllers**](/docs/pt/conceitos/controllers): Entenda como os controllers usam a configuração.
+- [🔌 **Middleware**](/docs/pt/conceitos/middleware): Veja como os plugins são implementados como middlewares.

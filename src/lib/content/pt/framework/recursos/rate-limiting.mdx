@@ -1,0 +1,80 @@
+---
+title: Rate Limiting
+description: Proteja sua API contra abuso e DDoS com Rate Limiting integrado
+category: Recursos
+icon: lucide:gauge
+order: 4
+---
+
+# Rate Limiting 🛡️
+
+O AzuraJS oferece um middleware de Rate Limiting integrado que ajuda a proteger sua API contra ataques de força bruta, abuso e negação de serviço (DDoS) limitando o número de requisições que um cliente pode fazer em um determinado período.
+
+## Configuração Global
+
+Você pode configurar o Rate Limiting globalmente através do seu arquivo `azura.config.ts`:
+
+```typescript
+// azura.config.ts
+import type { ConfigTypes } from "azurajs/config";
+
+const config: ConfigTypes = {
+  // ...
+  plugins: {
+    rateLimit: {
+      enabled: true,           // Habilitar Rate Limiting
+      limit: 100,              // Máximo de 100 requisições
+      timeframe: 60000,        // Por minuto (60000ms)
+      // message: "Muitas requisições, tente novamente mais tarde.", // Mensagem personalizada
+      // trustProxy: true,      // Se estiver atrás de um proxy reverso
+    },
+  },
+};
+
+export default config;
+```
+
+### Opções de `rateLimit`
+
+| Propriedade | Tipo | Descrição |
+| :--- | :--- | :--- |
+| `enabled` | `boolean` | Ativa ou desativa o middleware de Rate Limiting. Padrão: `false`. |
+| `limit` | `number` | O número máximo de requisições permitidas dentro do `timeframe`. Padrão: `60`. |
+| `timeframe` | `number` | A janela de tempo em milissegundos para a qual o `limit` se aplica. Padrão: `60000` (1 minuto). |
+| `message` | `string` | Mensagem de erro personalizada a ser enviada quando o limite é excedido. Padrão: `"Too many requests, please try again later."`. |
+| `trustProxy` | `boolean` | Se `true`, o IP do cliente será resolvido a partir dos cabeçalhos `X-Forwarded-For`. Padrão: `false`. |
+
+## Rate Limiting por Rota/Controller
+
+Para aplicar o Rate Limiting a controllers ou rotas específicas, você pode usar o decorator `@UseMiddleware` com a função `rateLimit` do AzuraJS.
+
+```typescript
+import { Controller, Get, UseMiddleware } from "azurajs/decorators";
+import { rateLimit } from "azurajs/plugins";
+
+const tenRequestsPerMinute = rateLimit(10, 60 * 1000);
+
+@Controller("/auth")
+export class AuthController {
+  @UseMiddleware(tenRequestsPerMinute)
+  @Get("/login")
+  login() {
+    return "Página de Login";
+  }
+
+  @UseMiddleware(rateLimit(5, 30 * 1000)) // 5 requisições a cada 30 segundos
+  @Post("/register")
+  register() {
+    return "Registro de Usuário";
+  }
+}
+```
+
+## Como Funciona
+
+O middleware de Rate Limiting rastreia o número de requisições de cada IP (ou identificador, se `trustProxy` estiver habilitado) dentro da janela de tempo definida. Se o limite for excedido, ele retorna um status `429 Too Many Requests`.
+
+## Próximos Passos 📖
+
+- [🌐 **CORS**](/docs/pt/recursos/cors): Entenda como proteger sua API contra requisições de diferentes origens.
+- [🚨 **Tratamento de Erros**](/docs/pt/recursos/error-handling): Saiba como personalizar a resposta de erro para o Rate Limiting.

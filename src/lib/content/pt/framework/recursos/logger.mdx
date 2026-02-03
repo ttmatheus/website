@@ -1,0 +1,83 @@
+---
+title: Logger
+description: Sistema de logging contextual e configurável no AzuraJS
+category: Recursos
+icon: lucide:clipboard-list
+order: 3
+---
+
+# Logger 📊
+
+O AzuraJS integra um sistema de logging contextual que se adapta ao ambiente de execução, fornecendo informações úteis durante o desenvolvimento e logs concisos em produção. Ele é configurável através do `azura.config.ts`.
+
+## Configuração do Logger
+
+Você pode controlar o comportamento do logger na seção `logging` do seu arquivo de configuração:
+
+```typescript
+// azura.config.ts
+import type { ConfigTypes } from "azurajs/config";
+
+const config: ConfigTypes = {
+  environment: "development",
+  logging: {
+    enabled: true,           // Ativa ou desativa o logging
+    showDetails: true,       // Mostra detalhes como query, params e body
+  },
+  // ... outras configurações
+};
+
+export default config;
+```
+
+### Opções de `logging`
+
+| Propriedade | Tipo | Descrição |
+| :--- | :--- | :--- |
+| `enabled` | `boolean` | Se `true`, o middleware de logging será ativado. Padrão: `true`. |
+| `showDetails` | `boolean` | Se `true`, logs de desenvolvimento incluirão detalhes da requisição (query, params, body). Padrão: `true` em `development`, `false` em `production`. |
+
+## Logs de Requisição
+
+Quando o logging está ativado, o AzuraJS automaticamente registra informações sobre cada requisição recebida e a resposta enviada. Isso inclui o método HTTP, URL, tempo de resposta e status HTTP.
+
+### Exemplo de Saída (Desenvolvimento)
+
+```bash
+· 14:30:05  GET    /api/users
+   › query: {}
+   › params: {}
+→ 200 (15ms) • IP:127.0.0.1
+```
+
+### Exemplo de Saída (Produção)
+
+```bash
+· 14:30:05  GET    /api/users • IP:192.168.1.100
+→ 200 (15ms) • IP:192.168.1.100
+```
+
+## Usando o Logger Interno
+
+Para logs personalizados dentro da sua aplicação, você pode importar e usar a função `logger` do AzuraJS. Ela se integra ao sistema de logging configurado.
+
+```typescript
+import { logger } from "azurajs/utils/logger";
+
+// ... dentro de um serviço ou controller
+logger("info", "Usuário logado com sucesso!");
+logger("warn", "Tentativa de acesso não autorizado.");
+logger("error", "Erro ao processar dados do usuário.", { userId: 123 });
+```
+
+### Níveis de Log Suportados
+
+*   `"info"`
+*   `"warn"`
+*   `"error"`
+*   `"debug"`
+
+## Próximos Passos 📖
+
+- [🚨 **Tratamento de Erros**](/docs/pt/recursos/error-handling): Veja como o logger pode ajudar a depurar erros.
+- [⚙️ **Configuração**](/docs/pt/comecando/configuracao): Entenda como o ambiente (`environment`) afeta o logging.

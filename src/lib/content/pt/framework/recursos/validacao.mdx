@@ -1,0 +1,69 @@
+---
+title: Validação
+description: Valide dados de requisição de forma elegante e type-safe
+category: Recursos
+icon: lucide:shield-check
+order: 1
+---
+
+# Validação ✅
+
+O AzuraJS possui um sistema de validação integrado e poderoso que permite garantir que os dados recebidos pela sua API estejam no formato correto antes mesmo de chegarem à lógica do seu controller.
+
+## O Azura Validator 🛡️
+
+Inspirado em bibliotecas como Zod, o validador do AzuraJS oferece uma sintaxe fluida e inferência de tipos automática.
+
+### Exemplo de Schema
+
+```typescript
+import { v } from "azurajs/validators";
+
+const CreateUserSchema = v.object({
+  username: v.string().min(3).max(20),
+  email: v.string().email(),
+  age: v.number().int().min(18).optional(),
+});
+
+// Inferência de tipo
+type CreateUserDto = v.infer<typeof CreateUserSchema>;
+```
+
+## Validando no Controller 🎯
+
+Você pode usar o schema diretamente dentro do seu método para validar o corpo da requisição:
+
+```typescript
+@Post()
+async createUser(@Body() body: any, @Res() res: ResponseServer) {
+  const result = CreateUserSchema.safeParse(body);
+
+  if (!result.success) {
+    return res.status(400).json({
+      error: "Validação falhou",
+      details: result.error.format()
+    });
+  }
+
+  const data = result.data; // Agora 'data' está totalmente tipado!
+  // ... lógica de criação
+}
+```
+
+## Tipos de Dados Suportados 📊
+
+- `v.string()`: Com suporte a `.email()`, `.url()`, `.uuid()`, `.min()`, `.max()`.
+- `v.number()`: Com suporte a `.int()`, `.positive()`, `.min()`, `.max()`.
+- `v.boolean()`: Para valores verdadeiro/falso.
+- `v.array(type)`: Para listas de elementos.
+- `v.object(shape)`: Para estruturas aninhadas.
+- `v.enum([values])`: Para valores específicos.
+
+## Validação Automática (Decorators) 🏷️
+
+Em versões futuras, o AzuraJS suportará a validação automática via decorators diretamente na assinatura do método. Fique atento às atualizações!
+
+## Próximos Passos 📖
+
+- [🍪 **Cookies**](/docs/pt/recursos/cookies): Gerenciamento nativo de cookies.
+- [🚨 **Error Handling**](/docs/pt/recursos/error-handling): Como lidar com falhas de validação.

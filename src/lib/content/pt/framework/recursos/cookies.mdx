@@ -1,0 +1,113 @@
+---
+title: Cookies
+description: Gerenciamento nativo de cookies no AzuraJS
+category: Recursos
+icon: lucide:cookie
+order: 2
+---
+
+# Cookies 🍪
+
+O AzuraJS oferece um gerenciamento de cookies simples e eficiente, permitindo que você defina, leia e exclua cookies de forma nativa, sem a necessidade de bibliotecas externas. Os objetos `RequestServer` e `ResponseServer` são estendidos para facilitar essa interação.
+
+## Lendo Cookies
+
+Você pode acessar os cookies enviados pelo cliente através da propriedade `req.cookies` ou usando o decorator `@Cookies()`.
+
+### Via `req.cookies`
+
+```typescript
+import { Controller, Get, Req, Res } from "azurajs/decorators";
+import type { RequestServer, ResponseServer } from "azurajs/types";
+
+@Controller("/auth")
+export class AuthController {
+  @Get("/check-session")
+  checkSession(@Req() req: RequestServer, @Res() res: ResponseServer) {
+    const sessionId = req.cookies.sessionId;
+    if (sessionId) {
+      return res.json({ authenticated: true, sessionId });
+    } else {
+      return res.status(401).json({ authenticated: false });
+    }
+  }
+}
+```
+
+### Via `@Cookies()` Decorator
+
+```typescript
+import { Controller, Get, Cookies } from "azurajs/decorators";
+
+@Controller("/auth")
+export class AuthController {
+  @Get("/check-session")
+  checkSession(@Cookies("sessionId") sessionId?: string) {
+    if (sessionId) {
+      return { authenticated: true, sessionId };
+    } else {
+      return { authenticated: false };
+    }
+  }
+}
+```
+
+## Definindo Cookies
+
+Use o método `res.cookie()` para definir um cookie na resposta. Ele aceita o nome, o valor e um objeto de opções para configurar o cookie.
+
+```typescript
+import { Controller, Post, Res } from "azurajs/decorators";
+import type { ResponseServer } from "azurajs/types";
+
+@Controller("/auth")
+export class AuthController {
+  @Post("/login")
+  login(@Res() res: ResponseServer) {
+    const newSessionId = "some-unique-session-id";
+    res.cookie("sessionId", newSessionId, {
+      httpOnly: true, // Não acessível via JavaScript no navegador
+      secure: process.env.NODE_ENV === "production", // Enviar apenas em HTTPS
+      maxAge: 1000 * 60 * 60 * 24 * 7, // Expira em 7 dias
+      path: "/", // Disponível para todo o domínio
+      sameSite: "lax", // Proteção CSRF
+    });
+    return res.json({ message: "Login successful" });
+  }
+}
+```
+
+### Opções de Cookie
+
+| Opção | Tipo | Descrição |
+| :--- | :--- | :--- |
+| `maxAge` | `number` | Tempo de vida do cookie em milissegundos. |
+| `expires` | `Date` | Data de expiração do cookie. |
+| `httpOnly` | `boolean` | Se `true`, o cookie não pode ser acessado via JavaScript. |
+| `secure` | `boolean` | Se `true`, o cookie só é enviado em requisições HTTPS. |
+| `path` | `string` | Caminho da URL para o qual o cookie é válido. Padrão: `/`. |
+| `domain` | `string` | Domínio para o qual o cookie é válido. |
+| `sameSite` | `"lax" \| "strict" \| "none"` | Proteção contra CSRF. |
+
+## Excluindo Cookies
+
+Para excluir um cookie, use `res.clearCookie()`, passando o nome do cookie. As opções devem ser as mesmas usadas para definir o cookie, exceto `maxAge` e `expires`.
+
+```typescript
+import { Controller, Post, Res } from "azurajs/decorators";
+import type { ResponseServer } from "azurajs/types";
+
+@Controller("/auth")
+export class AuthController {
+  @Post("/logout")
+  logout(@Res() res: ResponseServer) {
+    res.clearCookie("sessionId", { path: "/" });
+    return res.json({ message: "Logout successful" });
+  }
+}
+```
+
+## Próximos Passos 📖
+
+- [🛡️ **Validação**](/docs/pt/recursos/validacao): Garanta que os dados dos cookies sejam válidos.
+- [🌐 **CORS**](/docs/pt/recursos/cors): Entenda como os cookies interagem com políticas de CORS.

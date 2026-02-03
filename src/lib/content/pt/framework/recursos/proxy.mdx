@@ -1,0 +1,85 @@
+---
+title: Proxy
+description: Crie um proxy reverso de alta performance com AzuraJS
+category: Recursos
+icon: lucide:globe
+order: 5
+---
+
+# Proxy 🌐
+
+O AzuraJS oferece um middleware de proxy reverso que permite encaminhar requisições para outros servidores. Isso é útil para unificar APIs, contornar políticas de CORS ou balancear carga entre diferentes serviços. O plugin de proxy é altamente configurável e pode ser usado tanto no `azurajs` quanto no `@azurajs/cdn`.
+
+## Configuração Básica
+
+Você pode usar o middleware `proxyPlugin` diretamente em seu `AzuraClient`:
+
+```typescript
+import { AzuraClient } from "azurajs";
+import { proxyPlugin } from "azurajs/plugins";
+
+const app = new AzuraClient();
+
+// Encaminha todas as requisições para /api para um servidor de backend
+app.use("/api", proxyPlugin("http://localhost:8080"));
+
+await app.listen(3000);
+```
+
+## Opções de Proxy
+
+O `proxyPlugin` aceita um objeto de opções para um controle mais granular:
+
+```typescript
+import { AzuraClient } from "azurajs";
+import { proxyPlugin } from "azurajs/plugins";
+
+const app = new AzuraClient();
+
+app.use("/api", proxyPlugin("http://localhost:8080", {
+  pathRewrite: {
+    "^/api": "/"
+  }, // Reescreve o caminho da URL
+  headers: {
+    "X-Custom-Header": "AzuraJS-Proxy"
+  }, // Adiciona cabeçalhos personalizados
+  timeout: 5000, // Tempo limite da requisição em ms
+  followRedirects: false, // Não seguir redirecionamentos
+  preserveHost: true, // Preservar o cabeçalho Host original
+  logLevel: "debug", // Nível de log do proxy (info, warn, error, debug, none)
+  onProxyReq: (proxyReq, req) => {
+    // Modificar a requisição antes de enviar ao target
+    proxyReq.setHeader("X-Real-IP", req.ip);
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    // Modificar a resposta do target antes de enviar ao cliente
+    proxyRes.headers["x-proxied-by"] = "AzuraJS";
+  },
+  onError: (err, req, res) => {
+    // Lidar com erros de proxy
+    res.status(500).json({ error: "Proxy Error", details: err.message });
+  }
+}));
+
+await app.listen(3000);
+```
+
+### Detalhes das Opções
+
+| Opção | Tipo | Descrição |
+| :--- | :--- | :--- |
+| `target` | `string` | **Obrigatório**. A URL base do servidor de destino. |
+| `pathRewrite` | `Record<string, string>` | Um objeto para reescrever o caminho da URL antes de encaminhar. As chaves são regex e os valores são strings de substituição. |
+| `headers` | `Record<string, string>` | Cabeçalhos adicionais a serem enviados para o servidor de destino. |
+| `timeout` | `number` | Tempo limite em milissegundos para a requisição proxy. Padrão: `30000` (30 segundos). |
+| `followRedirects` | `boolean` | Se `true`, o proxy seguirá redirecionamentos do servidor de destino. Padrão: `false`. |
+| `preserveHost` | `boolean` | Se `true`, o cabeçalho `Host` original da requisição do cliente será enviado ao destino. Padrão: `false`. |
+| `logLevel` | `"info" \| "warn" \| "error" \| "debug" \| "none"` | Nível de detalhe dos logs do proxy. Padrão: `"info"`. |
+| `onProxyReq` | `(proxyReq, req) => void` | Função de callback chamada antes de enviar a requisição ao destino. Permite modificar `proxyReq`. |
+| `onProxyRes` | `(proxyRes, req, res) => void` | Função de callback chamada após receber a resposta do destino. Permite modificar `proxyRes` ou `res`. |
+| `onError` | `(err, req, res) => void` | Função de callback para lidar com erros que ocorrem durante a requisição proxy. |
+
+## Próximos Passos 📖
+
+- [⚡ **Modo Cluster**](/docs/pt/recursos/cluster-mode): Combine o proxy com o modo cluster para alta disponibilidade.
+- [🌐 **CORS**](/docs/pt/recursos/cors): Use o proxy para resolver problemas de CORS entre diferentes origens.

@@ -1,0 +1,81 @@
+---
+title: Uso com JavaScript
+description: Como usar o AzuraJS em projetos JavaScript puro
+category: Começando
+icon: lucide:code
+order: 4
+---
+
+# Uso com JavaScript ☕
+
+Embora o AzuraJS seja construído com TypeScript em mente e aproveite seus recursos de tipagem e decorators, ele pode ser usado perfeitamente em projetos JavaScript puro. A principal diferença é que você não usará os decorators, mas sim a API funcional do `AzuraClient`.
+
+## Configuração do Projeto
+
+Para um projeto JavaScript, você não precisa habilitar `experimentalDecorators` no `tsconfig.json`. Um `package.json` básico e um arquivo de configuração `azura.config.js` são suficientes.
+
+### `azura.config.js`
+
+```javascript
+// azura.config.js
+
+const config = {
+  environment: "development",
+  server: {
+    port: 3000,
+  },
+  logging: {
+    enabled: true,
+  },
+};
+
+export default config;
+```
+
+## Criando Rotas Funcionais
+
+Em vez de classes com decorators, você define as rotas diretamente na instância do `AzuraClient`.
+
+```javascript
+// src/index.js
+
+import { AzuraClient } from "azurajs";
+
+const app = new AzuraClient();
+
+app.get("/", (req, res) => {
+  res.send("Olá do AzuraJS em JavaScript!");
+});
+
+app.post("/data", async (req, res) => {
+  const body = await req.json(); // Para ler o corpo JSON
+  res.json({ received: body, status: "success" });
+});
+
+app.listen().then(() => {
+  console.log("🚀 Servidor AzuraJS JS rodando em http://localhost:3000");
+});
+```
+
+## Acessando Dados da Requisição
+
+Os objetos `req` (RequestServer) e `res` (ResponseServer) ainda fornecem uma API rica para interagir com a requisição e a resposta.
+
+```javascript
+app.get("/users/:id", (req, res) => {
+  const userId = req.params.id; // Parâmetros de rota
+  const queryParam = req.query.search; // Parâmetros de query
+  const userAgent = req.headers["user-agent"]; // Headers
+
+  res.json({
+    id: userId,
+    search: queryParam,
+    userAgent: userAgent,
+  });
+});
+```
+
+## Próximos Passos 📖
+
+- [⚙️ **Configuração**](/docs/pt/comecando/configuracao): Entenda todas as opções de configuração do AzuraJS.
+- [🛣️ **Routing**](/docs/pt/conceitos/routing): Explore as capacidades de roteamento, mesmo sem decorators.
