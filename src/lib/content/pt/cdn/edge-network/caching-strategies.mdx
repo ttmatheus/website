@@ -1,0 +1,87 @@
+---
+title: Estratégias de Cache
+description: Entenda como o AzuraJS CDN gerencia o armazenamento e a expiração de dados
+category: Edge Network
+icon: lucide:zap
+order: 2
+---
+
+# Estratégias de Cache ⚡
+
+O AzuraJS CDN utiliza um sistema de cache híbrido e inteligente para garantir que seus dados sejam entregues com a maior velocidade possível, reduzindo drasticamente a carga no seu servidor de origem.
+
+## Hierarquia de Cache
+
+O CDN opera com duas camadas de armazenamento:
+
+1.  **L1 (Memória RAM)**: Extremamente rápido, ideal para os arquivos mais acessados (Hot Data).
+2.  **L2 (Disco)**: Persistente e com maior capacidade, ideal para arquivos maiores ou menos frequentes.
+
+### Configurando o Cache Híbrido
+
+```typescript
+import { createCDN } from "@azurajs/cdn";
+
+const cdn = createCDN({
+  origin: "https://origem.com",
+  cache: {
+    // Camada L1: Limite de 256MB em memória
+    maxMemoryBytes: 256 * 1024 * 1024,
+    
+    // Camada L2: Persistência em disco
+    disk: {
+      enabled: true,
+      path: "./.cdn-cache" // Pasta onde os arquivos serão salvos
+    },
+    
+    // TTL padrão (caso a origem não envie Cache-Control)
+    ttl: 600 // 10 minutos
+  }
+});
+```
+
+## Como o Cache é Determinado
+
+O AzuraJS CDN segue uma lógica de prioridade para decidir por quanto tempo um arquivo deve ficar em cache:
+
+| Prioridade | Origem da Informação | Descrição |
+| :--- | :--- | :--- |
+| **1 (Alta)** | `Cache-Control` Header | O CDN respeita o `s-maxage` ou `max-age` enviado pelo seu servidor backend. |
+| **2 (Média)** | `config.cache.ttl` | Valor definido na inicialização do `createCDN`. |
+| **3 (Baixa)** | Padrão (300s) | Caso nenhuma das opções acima esteja disponível, o cache dura 5 minutos. |
+
+### Exemplo de Cache-Control na Origem
+
+Se o seu servidor AzuraJS (origem) responder com:
+`Cache-Control: public, max-age=3600`
+
+O CDN armazenará esse recurso por exatamente **1 hora**, ignorando o TTL padrão da configuração.
+
+## Fluxo de Requisição (HIT vs MISS)
+
+Quando uma requisição chega ao CDN, o seguinte fluxo é executado:
+
+1.  **Busca em Memória (L1)**: Se encontrar, retorna imediatamente (**HIT-MEMORY**).
+2.  **Busca em Disco (L2)**: Se não estiver na RAM, mas estiver no disco, carrega para a RAM e retorna (**HIT-DISK**).
+3.  **Busca na Origem**: Se não estiver em nenhum cache, solicita ao servidor de origem (**MISS**), armazena nas camadas de cache e retorna ao usuário.
+
+## Cabeçalhos de Diagnóstico
+
+Você pode verificar o estado do cache inspecionando o cabeçalho `x-cache` na resposta:
+
+*   `x-cache: MISS`: O recurso foi buscado na origem.
+*   `x-cache: HIT-DISK`: O recurso foi recuperado do armazenamento em disco.
+*   (Ausência de `x-cache` com status 200 geralmente indica **HIT-MEMORY**).
+
+## Limpeza de Cache (Purge)
+
+A purga é essencial para invalidar conteúdos atualizados antes do tempo de expiração original.
+
+```typescript
+// Purga manual via código
+cdn.purge("/images/banner-promocional.jpg");
+```
+
+<Callout type="warning" title="Atenção">
+A purga remove o arquivo de ambas as camadas (Memória e Disco) simultaneamente.
+</Callout>

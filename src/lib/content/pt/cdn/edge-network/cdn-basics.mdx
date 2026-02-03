@@ -1,0 +1,109 @@
+---
+title: Introdução ao AzuraJS CDN
+description: Aprenda os conceitos básicos e como configurar o servidor de borda do AzuraJS
+category: Edge Network
+icon: lucide:globe
+status: new
+date: 2026-02-03
+order: 1
+---
+
+<Callout type="success" title="Alta Performance">
+O `@azurajs/cdn` é um servidor de borda (Edge Server) ultrarrápido projetado para atuar como uma camada de cache inteligente entre seus usuários e seu servidor de origem.
+</Callout>
+
+O AzuraJS CDN permite que você distribua conteúdo estático e dinâmico com latência mínima, utilizando estratégias de cache em memória e em disco, além de oferecer segurança integrada através de URLs assinadas.
+
+## Instalação
+
+Para começar a usar o servidor de CDN, instale o pacote `@azurajs/cdn`:
+
+<Tabs items={["npm", "pnpm", "yarn", "bun"]}>
+  <Tab value="npm">
+```bash
+npm install @azurajs/cdn
+```
+  </Tab>
+  <Tab value="pnpm">
+```bash
+pnpm add @azurajs/cdn
+```
+  </Tab>
+  <Tab value="yarn">
+```bash
+yarn add @azurajs/cdn
+```
+  </Tab>
+  <Tab value="bun">
+```bash
+bun add @azurajs/cdn
+```
+  </Tab>
+</Tabs>
+
+## Configuração Básica
+
+O CDN é configurado através de um objeto de configuração simples. Veja um exemplo básico de inicialização:
+
+```typescript
+import { createCDN } from "@azurajs/cdn";
+
+const cdn = createCDN({
+  origin: "https://api.seuservidor.com", // URL do seu servidor backend
+  server: {
+    port: 4000,
+    host: "0.0.0.0"
+  },
+  cache: {
+    ttl: 3600, // Tempo de cache padrão em segundos (1 hora)
+    maxMemoryBytes: 1024 * 1024 * 512, // 512MB de cache em memória
+  }
+});
+
+cdn.listen();
+console.log("🚀 AzuraJS CDN rodando na porta 4000");
+```
+
+## Principais Funcionalidades
+
+| Recurso | Descrição |
+| :--- | :--- |
+| **Cache Multi-Camada** | Suporte a cache em memória (L1) e cache em disco (L2) para máxima eficiência. |
+| **URLs Assinadas** | Proteja recursos privados com links temporários gerados com HMAC SHA-256. |
+| **Purga Inteligente** | API dedicada para limpar o cache de rotas específicas instantaneamente. |
+| **Respeito ao Cache-Control** | O CDN honra automaticamente os cabeçalhos `Cache-Control` vindos da origem. |
+
+## URLs Assinadas (Segurança)
+
+Se você possui arquivos sensíveis (ex: `/private/documento.pdf`), o CDN pode exigir uma assinatura válida para liberar o acesso.
+
+```typescript
+const cdn = createCDN({
+  origin: "...",
+  signedUrls: {
+    secret: "sua-chave-secreta-super-segura"
+  }
+});
+
+// Gerando uma URL assinada que expira em 5 minutos
+const signedUrl = cdn.generateSignedUrl("/private/foto.png", 300);
+console.log(signedUrl); 
+// Saída: /private/foto.png?expires=1738598400&sig=a1b2c3d4...
+```
+
+## Purga de Cache
+
+Você pode limpar o cache de uma rota específica programaticamente:
+
+```typescript
+// Remove o cache para a rota /assets/logo.png
+cdn.purge("/assets/logo.png");
+```
+
+Ou através de uma requisição HTTP POST para o endpoint especial:
+
+```bash
+curl -X POST http://cdn.seu-site.com/__purge \
+     -H "Content-Type: application/json" \
+     -d '{"path": "/assets/logo.png"}'
+```

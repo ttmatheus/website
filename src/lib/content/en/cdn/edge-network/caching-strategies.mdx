@@ -1,0 +1,87 @@
+---
+title: Caching Strategies
+description: Understand how AzuraJS CDN manages data storage and expiration
+category: Edge Network
+icon: lucide:zap
+order: 2
+---
+
+# Caching Strategies ⚡
+
+AzuraJS CDN uses a hybrid and intelligent caching system to ensure your data is delivered at the highest possible speed, drastically reducing the load on your origin server.
+
+## Cache Hierarchy
+
+The CDN operates with two storage layers:
+
+1.  **L1 (RAM Memory)**: Extremely fast, ideal for the most accessed files (Hot Data).
+2.  **L2 (Disk)**: Persistent and with higher capacity, ideal for larger or less frequent files.
+
+### Configuring Hybrid Cache
+
+```typescript
+import { createCDN } from "@azurajs/cdn";
+
+const cdn = createCDN({
+  origin: "https://origin.com",
+  cache: {
+    // L1 Layer: 256MB memory limit
+    maxMemoryBytes: 256 * 1024 * 1024,
+    
+    // L2 Layer: Disk persistence
+    disk: {
+      enabled: true,
+      path: "./.cdn-cache" // Folder where files will be saved
+    },
+    
+    // Default TTL (if origin doesn't send Cache-Control)
+    ttl: 600 // 10 minutes
+  }
+});
+```
+
+## How Cache is Determined
+
+AzuraJS CDN follows a priority logic to decide how long a resource should stay in cache:
+
+| Priority | Source of Information | Description |
+| :--- | :--- | :--- |
+| **1 (High)** | `Cache-Control` Header | The CDN respects `s-maxage` or `max-age` sent by your backend server. |
+| **2 (Medium)** | `config.cache.ttl` | Value defined during `createCDN` initialization. |
+| **3 (Low)** | Default (300s) | If none of the above are available, the cache lasts for 5 minutes. |
+
+### Origin Cache-Control Example
+
+If your AzuraJS server (origin) responds with:
+`Cache-Control: public, max-age=3600`
+
+The CDN will store this resource for exactly **1 hour**, ignoring the default TTL configuration.
+
+## Request Flow (HIT vs MISS)
+
+When a request reaches the CDN, the following flow is executed:
+
+1.  **Memory Search (L1)**: If found, returns immediately (**HIT-MEMORY**).
+2.  **Disk Search (L2)**: If not in RAM but on disk, loads to RAM and returns (**HIT-DISK**).
+3.  **Origin Search**: If not in any cache, requests from the origin server (**MISS**), stores in the cache layers, and returns to the user.
+
+## Diagnostic Headers
+
+You can check the cache status by inspecting the `x-cache` header in the response:
+
+*   `x-cache: MISS`: The resource was fetched from the origin.
+*   `x-cache: HIT-DISK`: The resource was retrieved from disk storage.
+*   (Absence of `x-cache` with status 200 usually indicates **HIT-MEMORY**).
+
+## Cache Purge
+
+Purging is essential for invalidating updated content before the original expiration time.
+
+```typescript
+// Manual purge via code
+cdn.purge("/images/promotional-banner.jpg");
+```
+
+<Callout type="warning" title="Attention">
+Purging removes the file from both layers (Memory and Disk) simultaneously.
+</Callout>

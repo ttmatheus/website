@@ -1,0 +1,89 @@
+---
+title: Error Handling
+description: Robust and centralized error management in AzuraJS
+category: Features
+icon: lucide:bug
+order: 8
+---
+
+# Error Handling 🚨
+
+Effective error handling is fundamental to the robustness of any API. AzuraJS offers mechanisms to handle exceptions in a centralized and consistent manner, ensuring that your API returns meaningful responses and prevents leakage of sensitive information.
+
+## HttpError
+
+The `HttpError` class is the recommended way to throw errors with specific HTTP status codes within your controllers and services. It extends JavaScript's native `Error` class.
+
+```typescript
+import { HttpError } from "azurajs/errors";
+import { Controller, Get, Param, Res } from "azurajs/decorators";
+import type { ResponseServer } from "azurajs/types";
+
+@Controller("/users")
+export class UserController {
+  @Get("/:id")
+  getUser(@Param("id") id: string, @Res() res: ResponseServer) {
+    if (id === "invalid") {
+      throw new HttpError(400, "Invalid user ID");
+    }
+    if (id === "notfound") {
+      throw new HttpError(404, "User not found", { code: "USER_NOT_FOUND" });
+    }
+    return { id, name: `User ${id}` };
+  }
+}
+```
+
+### `HttpError` Constructor
+
+```typescript
+new HttpError(status: number, message?: string, payload?: any)
+```
+
+*   `status`: The HTTP status code (e.g., 400, 401, 404, 500).
+*   `message`: A descriptive error message. If omitted, it will be generated based on the status.
+*   `payload`: An optional object with additional error data (e.g., internal error codes, validation details).
+
+## Global Error Middleware
+
+AzuraJS has a default error middleware that catches all thrown exceptions and formats them into a consistent JSON response. You can customize this behavior by creating your own error middleware.
+
+An error middleware has the signature `(err: Error, req: RequestServer, res: ResponseServer, next: Function)`.
+
+```typescript
+import { AzuraClient } from "azurajs";
+import { HttpError } from "azurajs/errors";
+import type { RequestServer, ResponseServer } from "azurajs/types";
+
+const app = new AzuraClient();
+
+// Your custom error middleware
+app.use((err: Error, req: RequestServer, res: ResponseServer, next: Function) => {
+  if (err instanceof HttpError) {
+    return res.status(err.status).json({
+      statusCode: err.status,
+      message: err.message,
+      error: err.payload || null,
+    });
+  } else {
+    // Unhandled errors (500 Internal Server Error)
+    console.error(err); // Log the error for debugging
+    return res.status(500).json({
+      statusCode: 500,
+      message: "Internal server error",
+      error: process.env.NODE_ENV === "development" ? err.message : "",
+    });
+  }
+});
+
+// ... register controllers and start the server
+```
+
+## Async Error Handling
+
+AzuraJS automatically handles errors in async functions (rejected promises) within controllers and middlewares. You don't need `try/catch` blocks in every `async` function unless you want to handle the error locally.
+
+## Next Steps 📖
+
+- [📊 **Logger**](/docs/en/framework/features/logger): Use the logger to register errors effectively.
+- [⚡ **Cluster Mode**](/docs/en/framework/features/cluster-mode): Understand how error handling works in a multi-process environment.

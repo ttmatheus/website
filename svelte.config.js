@@ -12,6 +12,20 @@ const mdxImports = `
     import Icon from '@iconify/svelte';
 `;
 
+// Create a TRUE singleton highlighter instance - initialized once at module load
+const highlighterPromise = createHighlighter({
+  themes: ["github-dark"],
+  langs: [
+    "javascript",
+    "typescript",
+    "bash",
+    "sh",
+    "json",
+    "yaml",
+    "text",
+  ],
+});
+
 const config = {
   extensions: [".svelte", ".mdx"],
 
@@ -45,30 +59,17 @@ const config = {
       },
       highlight: {
         highlighter: async (code, lang = "text") => {
-          const highlighter = await createHighlighter({
-            themes: ["github-dark", "github-dark-dimmed"],
-            langs: [
-              "javascript",
-              "typescript",
-              "tsx",
-              "jsx",
-              "bash",
-              "sh",
-              "json",
-              "svelte",
-              "html",
-              "css",
-              "scss",
-              "yaml",
-              "shell",
-              "markdown",
-              "python",
-              "rust",
-              "go",
-            ],
-          });
-          const html = escapeSvelte(highlighter.codeToHtml(code, { lang, theme: "github-dark" }));
-          return `<CodeBlock lang="${lang}">${html}</CodeBlock>`;
+          try {
+            const highlighter = await highlighterPromise;
+            let html = escapeSvelte(highlighter.codeToHtml(code, { lang, theme: "github-dark" }));
+            // Remove tabindex="0" from pre elements for accessibility
+            html = html.replace(/(<pre[^>]*)\s+tabindex="0"/g, '$1');
+            return `<CodeBlock lang="${lang}">${html}</CodeBlock>`;
+          } catch (error) {
+            console.error(`Shiki highlighting error for lang "${lang}":`, error);
+            // Fallback to plain code block
+            return `<CodeBlock lang="${lang}"><pre><code>${escapeSvelte(code)}</code></pre></CodeBlock>`;
+          }
         },
       },
     }),

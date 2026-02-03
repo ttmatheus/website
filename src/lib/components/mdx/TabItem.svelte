@@ -1,24 +1,26 @@
-<script>
+<script lang="ts">
   import { getContext, tick } from "svelte";
-  import { createHighlighter } from "shiki";
+  import { createHighlighter, type HighlighterGeneric, type BundledLanguage, type BundledTheme } from "shiki";
+  import type { Writable } from "svelte/store";
 
-  export let value;
+  export let value: string;
 
-  const selected = getContext("tabs");
-  let contentElement;
-  let highlighterPromise = null;
+  const selected = getContext<Writable<string>>("tabs");
+  let contentElement: HTMLElement;
+  let highlighterInstance: HighlighterGeneric<BundledLanguage, BundledTheme> | null = null;
 
-  function getHighlighter() {
-    if (!highlighterPromise) {
-      highlighterPromise = createHighlighter({
+  // Use singleton pattern to avoid creating multiple highlighter instances
+  async function getHighlighter() {
+    if (!highlighterInstance) {
+      highlighterInstance = await createHighlighter({
         themes: ["github-dark"],
-        langs: ["bash", "sh", "javascript", "typescript", "json", "yaml", "css", "html"]
+        langs: ["bash", "sh", "javascript", "typescript", "json", "yaml", "css", "html", "text"]
       });
     }
-    return highlighterPromise;
+    return highlighterInstance;
   }
 
-  async function copyToClipboard(text, btn) {
+  async function copyToClipboard(text: string, btn: HTMLElement) {
     try {
       await navigator.clipboard.writeText(text);
       const originalIcon = btn.innerHTML;
@@ -33,15 +35,27 @@
     }
   }
 
-  function handleContainerClick(event) {
-    const btn = event.target.closest(".copy-btn");
-    if (btn) {
+  function handleContainerClick(event: MouseEvent) {
+    const btn = (event.target as HTMLElement).closest<HTMLElement>(".copy-btn");
+    if (btn && btn.dataset.code) {
       const codeData = decodeURIComponent(btn.dataset.code);
       copyToClipboard(codeData, btn);
     }
   }
 
-  async function processCodeBlocks(node) {
+  function handleKeyDown(event: KeyboardEvent) {
+    // Allow keyboard navigation for copy buttons
+    if (event.key === 'Enter' || event.key === ' ') {
+      const btn = (event.target as HTMLElement).closest<HTMLElement>(".copy-btn");
+      if (btn && btn.dataset.code) {
+        event.preventDefault();
+        const codeData = decodeURIComponent(btn.dataset.code);
+        copyToClipboard(codeData, btn);
+      }
+    }
+  }
+
+  async function processCodeBlocks(node: HTMLElement) {
     if (!node) return;
 
     if (node.querySelector(".fd-figure")) return;
@@ -51,8 +65,6 @@
     
     if (!codeBlockRegex.test(textContent)) return;
 
-    const highlighter = await getHighlighter();
-    
     // Check again if processed while waiting for highlighter
     if (node.querySelector(".fd-figure")) return;
 
@@ -62,7 +74,7 @@
     // Reset regex
     codeBlockRegex.lastIndex = 0;
 
-    const matches = [];
+    const matches: Array<{ full: string; lang: string; code: string }> = [];
     while ((match = codeBlockRegex.exec(textContent)) !== null) {
       matches.push({
         full: match[0],
@@ -71,12 +83,18 @@
       });
     }
 
+    const highlighter = await getHighlighter();
+
     for (const match of matches) {
-      const highlighted = highlighter.codeToHtml(match.code, {
+      
+      let highlighted = highlighter.codeToHtml(match.code, {
         lang: match.lang,
         theme: "github-dark",
         defaultColor: false
       });
+
+      // Remove tabindex="0" from pre elements for accessibility compliance
+      highlighted = highlighted.replace(/(<pre[^>]*)\s+tabindex="0"/g, '$1');
 
       const encodedCode = encodeURIComponent(match.code);
       
@@ -106,7 +124,14 @@
 </script>
 
 {#if $selected === value}
-  <div class="tab-panel" role="tabpanel" tabindex="0" bind:this={contentElement} on:click={handleContainerClick}>
+  <div 
+    class="tab-panel" 
+    role="tabpanel"
+    tabindex="0"
+    bind:this={contentElement} 
+    on:click={handleContainerClick}
+    on:keydown={handleKeyDown}
+  >
     <slot />
   </div>
 {/if}

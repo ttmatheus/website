@@ -1,0 +1,109 @@
+---
+title: Introduction to AzuraJS CDN
+description: Learn the basics and how to configure the AzuraJS edge server
+category: Edge Network
+icon: lucide:globe
+status: new
+date: 2026-02-03
+order: 1
+---
+
+<Callout type="success" title="High Performance">
+`@azurajs/cdn` is an ultra-fast Edge Server designed to act as an intelligent caching layer between your users and your origin server.
+</Callout>
+
+AzuraJS CDN allows you to distribute static and dynamic content with minimal latency, utilizing memory and disk caching strategies, and offering integrated security through signed URLs.
+
+## Installation
+
+To get started with the CDN server, install the `@azurajs/cdn` package:
+
+<Tabs items={["npm", "pnpm", "yarn", "bun"]}>
+  <Tab value="npm">
+```bash
+npm install @azurajs/cdn
+```
+  </Tab>
+  <Tab value="pnpm">
+```bash
+pnpm add @azurajs/cdn
+```
+  </Tab>
+  <Tab value="yarn">
+```bash
+yarn add @azurajs/cdn
+```
+  </Tab>
+  <Tab value="bun">
+```bash
+bun add @azurajs/cdn
+```
+  </Tab>
+</Tabs>
+
+## Basic Configuration
+
+The CDN is configured through a simple configuration object. Here is a basic initialization example:
+
+```typescript
+import { createCDN } from "@azurajs/cdn";
+
+const cdn = createCDN({
+  origin: "https://api.yourserver.com", // Your backend server URL
+  server: {
+    port: 4000,
+    host: "0.0.0.0"
+  },
+  cache: {
+    ttl: 3600, // Default cache time in seconds (1 hour)
+    maxMemoryBytes: 1024 * 1024 * 512, // 512MB memory cache
+  }
+});
+
+cdn.listen();
+console.log("🚀 AzuraJS CDN running on port 4000");
+```
+
+## Key Features
+
+| Feature | Description |
+| :--- | :--- |
+| **Multi-Layer Cache** | Support for memory (L1) and disk (L2) caching for maximum efficiency. |
+| **Signed URLs** | Protect private resources with temporary links generated using HMAC SHA-256. |
+| **Intelligent Purge** | Dedicated API to clear cache for specific routes instantly. |
+| **Cache-Control Respect** | The CDN automatically honors `Cache-Control` headers from the origin. |
+
+## Signed URLs (Security)
+
+If you have sensitive files (e.g., `/private/document.pdf`), the CDN can require a valid signature to grant access.
+
+```typescript
+const cdn = createCDN({
+  origin: "...",
+  signedUrls: {
+    secret: "your-super-secure-secret-key"
+  }
+});
+
+// Generating a signed URL that expires in 5 minutes
+const signedUrl = cdn.generateSignedUrl("/private/photo.png", 300);
+console.log(signedUrl); 
+// Output: /private/photo.png?expires=1738598400&sig=a1b2c3d4...
+```
+
+## Cache Purge
+
+You can clear the cache for a specific route programmatically:
+
+```typescript
+// Removes cache for the route /assets/logo.png
+cdn.purge("/assets/logo.png");
+```
+
+Or via a POST HTTP request to the special endpoint:
+
+```bash
+curl -X POST http://cdn.your-site.com/__purge \
+     -H "Content-Type: application/json" \
+     -d '{"path": "/assets/logo.png"}'
+```
