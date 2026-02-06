@@ -23,11 +23,11 @@
     openSections[index] = !openSections[index];
   }
 
-  function isActive(slug: string) {
+  $: isActive = (slug: string) => {
     const normalizedCurrent = currentSlug.replace(/\/+$/, "");
     const normalizedItem = slug.replace(/\/+$/, "");
     return normalizedCurrent === normalizedItem;
-  }
+  };
 
   function selectFramework(id: 'framework' | 'cdn') {
     activeFramework = id;
