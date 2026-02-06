@@ -3,7 +3,7 @@ export const docsConfig = {
     {
       title: "Getting Started",
       items: [
-        { title: "Welcome to AzuraJS", slug: "framework/getting-started/introduction" },
+        { title: "Welcome to AzuraJS", slug: "introduction" },
         { title: "Installation", slug: "framework/getting-started/installation" },
         { title: "Quick Start", slug: "framework/getting-started/quick-start" },
         { title: "Usage with JavaScript", slug: "framework/getting-started/usage-with-javascript" },
